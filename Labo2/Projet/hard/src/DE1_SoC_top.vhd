@@ -206,7 +206,15 @@ architecture top of DE1_SoC_top is
             -- FPGA Side
             ------------------------------------
 				pio_0_switch_export              : in    std_logic_vector(9 downto 0)  := (others => 'X'); -- export
-            pio_1_leds_export                : out   std_logic_vector(9 downto 0)  ;							 -- export                  
+            pio_1_leds_export                : out   std_logic_vector(9 downto 0);                     -- export
+            pio_2_7seg_0_export              : out   std_logic_vector(6 downto 0);                     -- export
+            pio_3_7seg_4_export              : out   std_logic_vector(6 downto 0);                 -- export
+            pio_4_keys_export                : in    std_logic_vector(3 downto 0)  := (others => 'X'); -- export
+            pio_5_7seg_1_export              : out   std_logic_vector(6 downto 0);                     -- export
+            pio_6_7seg_2_export              : out   std_logic_vector(6 downto 0);                     -- export
+            pio_7_7seg_3_export              : out   std_logic_vector(6 downto 0);                     -- export
+            pio_8_7seg_5_export              : out   std_logic_vector(6 downto 0);                      -- export
+				
 				clk_clk                          : in    std_logic                     := 'X';             -- clk
         
             -- Global signals
@@ -251,8 +259,16 @@ begin
         ------------------------------------
         -- FPGA Side
         ------------------------------------
+		  
 			pio_0_switch_export 	=>	SW_i,
 			pio_1_leds_export   	=>	LEDR_o,
+			pio_2_7seg_0_export	=> HEX0_o,
+			pio_5_7seg_1_export	=> HEX1_o,
+			pio_6_7seg_2_export	=> HEX2_o,
+			pio_7_7seg_3_export	=> HEX3_o,
+			pio_3_7seg_4_export   => HEX4_o,     
+			pio_8_7seg_5_export   => HEX5_o,     
+			pio_4_keys_export       => KEY_i,    
 			clk_clk					=> CLOCK_50_i,
         -- Global signals
         

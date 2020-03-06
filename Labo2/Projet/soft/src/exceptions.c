@@ -29,6 +29,11 @@
 #include "address_map_arm.h"
 #include "defines.h"
 
+void config_interrupt (int, int);
+void pushbutton_ISR(void);
+
+// Exemple dans Using The ARM Generic
+
 // Define the IRQ exception handler
 void __attribute__ ((interrupt)) __cs3_isr_irq(void)
 {
@@ -37,11 +42,19 @@ void __attribute__ ((interrupt)) __cs3_isr_irq(void)
 	 **********/
 
 	// Read CPU Interface registers to determine which peripheral has caused an interrupt 
+	int interrupt_ID =*((int*) 0xFFFEC10C);
 	
 	// Handle the interrupt if it comes from the KEYs
+	if (interrupt_ID == 73) {
+		pushbutton_ISR ();
+	} else {
+		//while (1);                     // if unexpected, then stay here
+	}
 
 	// Clear interrupt from the CPU Interface
-
+	*((int*) 0xFFFEC110) = interrupt_ID;
+	
+	
 	return;
 } 
 
@@ -101,4 +114,53 @@ void enable_A9_interrupts(void)
 {
 	uint32_t status = SVC_MODE | INT_ENABLE;
 	asm("msr cpsr, %[ps]" : : [ps]"r"(status));
+}
+
+/** Turn off interrupts in the ARM processor*/
+void disable_A9_interrupts(void) { 
+	int status = 0b11010011;
+	asm("msr cpsr, %[ps]" : : [ps]"r"(status));
+}
+
+void config_GIC (void) {
+	config_interrupt (73, 1);    // configure the FPGA KEYs interrupt (73)
+	
+	// Set Interrupt Priority Mask Register (ICCPMR). Enable all priorities
+	*((int*) 0xFFFEC104) = 0xFFFF;
+	
+	// Set the enable in the CPU Interface Control Register (ICCICR)
+	*((int*) 0xFFFEC100) = 1;
+	
+	// Set the enable in the Distributor Control Register (ICDDCR)
+	*((int*) 0xFFFED000) = 1;
+}
+
+void config_KEYs (void) {
+	volatile int*KEY_ptr = (int*) 0xFF200050;   // KEY base address
+	
+	*(KEY_ptr + 2) = 0xF;    // enable interrupts for all four KEYs
+}
+
+void config_interrupt (int N, int CPU_target) {
+	int reg_offset, index, value, address;
+	
+	/*Configure the Interrupt Set-Enable Registers (ICDISERn).
+	 *reg_offset = (integer_div(N / 32)*4; value = 1 << (N mod 32)*/
+	
+	reg_offset = (N >> 3) & 0xFFFFFFFC;
+	index = N & 0x1F;
+	value = 0x1 << index;
+	address = 0xFFFED100 + reg_offset;
+	
+	/*Using the address and value, set the appropriate bit*/
+	*(int*)address |= value;
+	
+	/*Configure the Interrupt Processor Targets Register (ICDIPTRn)
+	 * reg_offset = integer_div(N / 4)*4; index = N mod 4*/
+	reg_offset = (N & 0xFFFFFFFC);
+	index = N & 0x3;
+	address = 0xFFFED800 + reg_offset + index;
+	
+	/*Using the address and value, write to (only) the appropriate byte*/
+	*(char*)address = (char) CPU_target;
 }

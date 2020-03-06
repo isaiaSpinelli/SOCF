@@ -4,7 +4,7 @@
         <system_info filepath="true">../../hard/eda/qsys_system.sopcinfo</system_info>
         <system_sof filepath="true">../../hard/eda/output_files/DE1_SoC_top.sof</system_sof>
         <system_jdi filepath="true"/>
-        <cable>null</cable>
+        <cable>DE-SoC [1-1.5]</cable>
         <processor>hps_0_arm_a9_0</processor>
         <reset_processor_during_load>true</reset_processor_during_load>
         <terminal>Semihosting</terminal>
@@ -13,6 +13,9 @@
         <type>C Program</type>
         <source_files>
             <source_file filepath="true">../src/fpga_gpio.c</source_file>
+            <source_file filepath="true">../src/address_map_arm.h</source_file>
+            <source_file filepath="true">../src/defines.h</source_file>
+            <source_file filepath="true">../src/exceptions.c</source_file>
         </source_files>
         <options>
             <compiler_flags>-g -O0</compiler_flags>
