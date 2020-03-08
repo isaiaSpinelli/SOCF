@@ -38,21 +38,28 @@ void pushbutton_ISR(void);
 void __attribute__ ((interrupt)) __cs3_isr_irq(void)
 {
 	/***********
-	 * TO DO
+	 * INTERRUPTION CONSTANTES CAR ACTIF BAS
 	 **********/
-
+	 
 	// Read CPU Interface registers to determine which peripheral has caused an interrupt 
 	int interrupt_ID =*((int*) 0xFFFEC10C);
 	
+	*((int*) 0xFF200080) = 0x40;
+	
 	// Handle the interrupt if it comes from the KEYs
-	if (interrupt_ID == 73) {
+	if (interrupt_ID == 72) {
 		pushbutton_ISR ();
 	} else {
 		//while (1);                     // if unexpected, then stay here
+		*((int*) 0xFF200080) = 0x06;
 	}
+	
+	*((int*) 0xFF200080) = 0x27;
 
 	// Clear interrupt from the CPU Interface
 	*((int*) 0xFFFEC110) = interrupt_ID;
+	
+	
 	
 	
 	return;
@@ -123,7 +130,8 @@ void disable_A9_interrupts(void) {
 }
 
 void config_GIC (void) {
-	config_interrupt (73, 1);    // configure the FPGA KEYs interrupt (73)
+	 // configure the FPGA KEYs interrupt (72)
+	config_interrupt (72, 1); 
 	
 	// Set Interrupt Priority Mask Register (ICCPMR). Enable all priorities
 	*((int*) 0xFFFEC104) = 0xFFFF;
@@ -137,8 +145,11 @@ void config_GIC (void) {
 
 void config_KEYs (void) {
 	volatile int*KEY_ptr = (int*) 0xFF200050;   // KEY base address
+
+	//*(KEY_ptr + 5) = 0xF;    // polarity
 	
 	*(KEY_ptr + 2) = 0xF;    // enable interrupts for all four KEYs
+	
 }
 
 void config_interrupt (int N, int CPU_target) {

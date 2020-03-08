@@ -23,6 +23,11 @@
  *
 *****************************************************************************************/
 
+#define KEY0 0x01
+#define KEY1 0x02
+#define KEY2 0x04
+#define KEY3 0x08
+
 typedef volatile unsigned int vuint;
 
 #define FPGA_BASE_ADDR_IO 		0xFF200000
@@ -52,9 +57,11 @@ void enable_A9_interrupts (void);
 
 int main(void){
 	
+	int key2Presses, key3Presses = 0;
+	//								  0 	1	  2		3	 4		5	 6	   7      8     9    a      b    c      d     e    f
 	char tab_dec_to_hex_7seg[16] = {0x40, 0xF9, 0x24, 0x30, 0x19, 0x12, 0x02, 0xF8, 0x00, 0x10, 0x08, 0x03, 0x27, 0x21, 0x06, 0x0e };
 	
-	//disable_A9_interrupts ();   // disable interrupts in the A9 processor
+	disable_A9_interrupts ();   // disable interrupts in the A9 processor
 	FPAG_7SEG_0 = 0x40 ;
 	set_A9_IRQ_stack ();        // initialize the stack pointer for IRQ mode
 	FPAG_7SEG_0 = 0xF9 ;
@@ -62,14 +69,13 @@ int main(void){
 	FPAG_7SEG_0 = 0x24 ;
 	config_KEYs ();             // configure KEYs to generate interrupts
 	FPAG_7SEG_0 = 0x0e ;
-	/* Block ici...*/
 	enable_A9_interrupts ();    // enable interrupts in the A9 processor
 	FPAG_7SEG_0 = 0x19 ;
 	
     
     while(1){
 		/* Appuie sur KEY 0*/
-		if ((FPAG_KEY & 0x1) == 0) {
+		if ((FPAG_KEY & KEY0) == 0) {
 			FPAG_LED = FPAG_SWITCH;
 			/* Les afficheurs HEX2 et HEX3 affichent 1 lorsque la LED8 et respectivement la LED9
 				sont allumées, 0 sinon. */
@@ -81,7 +87,7 @@ int main(void){
 			FPAG_7SEG_0 = tab_dec_to_hex_7seg[(FPAG_LED & 0xF)] ;
 			FPAG_7SEG_1 = tab_dec_to_hex_7seg[(FPAG_LED & 0xF0) >> 4];
 
-		} else if ((FPAG_KEY & 0x2) == 0) {
+		} else if ((FPAG_KEY & KEY1) == 0) {
 			FPAG_LED = ~FPAG_SWITCH;
 			
 			/* Les afficheurs HEX2 et HEX3 affichent 1 lorsque la LED8 et respectivement la LED9
@@ -94,6 +100,49 @@ int main(void){
 			FPAG_7SEG_0 = tab_dec_to_hex_7seg[(FPAG_LED & 0xF)] ;
 			FPAG_7SEG_1 = tab_dec_to_hex_7seg[(FPAG_LED & 0xF0) >> 4];
 
+			/* Appuie sur KEY 2 */
+		} else if ((FPAG_KEY & KEY2) == 0) {
+			
+			if (key2Presses == 0) {
+				key2Presses = 1;
+			
+				FPAG_LED = FPAG_LED >> 1;
+		
+				FPAG_7SEG_0 = FPAG_7SEG_1;
+				FPAG_7SEG_1 = FPAG_7SEG_2;
+				FPAG_7SEG_2 = FPAG_7SEG_3;
+				FPAG_7SEG_3 = FPAG_7SEG_4;
+				FPAG_7SEG_4 = FPAG_7SEG_5;
+				FPAG_7SEG_5 = 0xFF;
+				
+			}
+			
+			
+			
+			/* Appuie sur KEY 3 */
+		} else if ((FPAG_KEY & KEY3) == 0) {
+			
+			if (key3Presses == 0) {
+				key3Presses = 1;
+				
+				FPAG_LED = FPAG_LED << 1;
+				FPAG_7SEG_5 = FPAG_7SEG_4;
+				FPAG_7SEG_4 = FPAG_7SEG_3;
+				FPAG_7SEG_3 = FPAG_7SEG_2;
+				FPAG_7SEG_2 = FPAG_7SEG_1;
+				FPAG_7SEG_1 = FPAG_7SEG_0;
+				FPAG_7SEG_0 = 0xFF;
+			}
+			
+			
+		} else {
+			if (key2Presses == 1) {
+				key2Presses = 0;
+			}
+			
+			if (key3Presses == 1) {
+				key3Presses = 0;
+			}
 		}
 		
 	}
@@ -108,7 +157,8 @@ void pushbutton_ISR(void){
 	press =*(KEY_ptr + 3);     // read the pushbutton interrupt register
 	*(KEY_ptr + 3) = press;     // Clear the interrupt
 	
-	FPAG_7SEG_5 = press;
+	//FPAG_7SEG_5 = 0x19;
+	FPAG_7SEG_4 = 0x19;
 	
 	return;
 	
