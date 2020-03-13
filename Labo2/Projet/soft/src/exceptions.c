@@ -22,6 +22,7 @@
  * Modifications :
  * Ver    Date        Engineer      Comments
  * 0.0    16.02.2018  SMS           Initial version.
+ * 1.0	  13.03.2020  Spinelli Isaia
  *
 *****************************************************************************************/
 #include <stdint.h>
@@ -32,36 +33,28 @@
 void config_interrupt (int, int);
 void pushbutton_ISR(void);
 
-// Exemple dans Using The ARM Generic
+// Référence : Exemple dans Using The ARM Generic
 
 // Define the IRQ exception handler
 void __attribute__ ((interrupt)) __cs3_isr_irq(void)
 {
 	/***********
-	 * INTERRUPTION CONSTANTES CAR ACTIF BAS
+	 * Attention dans Qsys mettre sur flanc et non level !
 	 **********/
 	 
 	// Read CPU Interface registers to determine which peripheral has caused an interrupt 
 	int interrupt_ID =*((int*) 0xFFFEC10C);
 	
-	*((int*) 0xFF200080) = 0x40;
-	
 	// Handle the interrupt if it comes from the KEYs
 	if (interrupt_ID == 72) {
-		pushbutton_ISR ();
+		pushbutton_ISR();
 	} else {
-		//while (1);                     // if unexpected, then stay here
-		*((int*) 0xFF200080) = 0x06;
+		while (1);                     // if unexpected, then stay here
 	}
-	
-	*((int*) 0xFF200080) = 0x27;
 
 	// Clear interrupt from the CPU Interface
 	*((int*) 0xFFFEC110) = interrupt_ID;
-	
-	
-	
-	
+
 	return;
 } 
 
@@ -145,8 +138,6 @@ void config_GIC (void) {
 
 void config_KEYs (void) {
 	volatile int*KEY_ptr = (int*) 0xFF200050;   // KEY base address
-
-	//*(KEY_ptr + 5) = 0xF;    // polarity
 	
 	*(KEY_ptr + 2) = 0xF;    // enable interrupts for all four KEYs
 	
