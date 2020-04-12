@@ -59,11 +59,20 @@ entity axi4lite_slave is
         axi_rdata_o     : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         axi_rresp_o     : out std_logic_vector(1 downto 0);
         axi_rvalid_o    : out std_logic;
-        axi_rready_i    : in  std_logic
+        axi_rready_i    : in  std_logic;
 
         -- User input-output
+        switch_i        : in  std_logic_vector(9 downto 0) := (others => 'X');
+        key_i           : in  std_logic_vector(3 downto 0)  := (others => 'X');
         
+        leds_o          : out std_logic_vector(9 downto 0);
         
+        hex0_o          : out std_logic_vector(6 downto 0);
+        hex1_o          : out std_logic_vector(6 downto 0);
+        hex2_o          : out std_logic_vector(6 downto 0);
+        hex3_o          : out std_logic_vector(6 downto 0);
+        hex4_o          : out std_logic_vector(6 downto 0);
+        hex5_o          : out std_logic_vector(6 downto 0)
     );
 end entity axi4lite_slave;
 
@@ -98,11 +107,39 @@ architecture rtl of axi4lite_slave is
     
     signal axi_wdata_mem_s     : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
     -- signal axi_araddr_mem_s    : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
-
+    
+    
+    constant registre_cst_mem : std_logic_vector(AXI_DATA_WIDTH downto 0):= x"deedbeef";
+    signal registre_test_mem : std_logic_vector(AXI_DATA_WIDTH downto 0):= (others => '0');
+    
+    -- signal for registre input (switch / key)
+    signal registre_switch_mem : std_logic_vector(9 downto 0) := (others => 'X');
+    signal registre_key_mem : std_logic_vector(3 downto 0) := (others => 'X');
+    
+    -- signal for registre leds 
+    signal registre_led_mem : std_logic_vector(9 downto 0) := (others => 'X');
+    
+    -- signal for registre 7 seg
+    signal registre_hex0_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex1_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex2_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex3_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex4_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex5_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    
 begin
 
+    -- default values 
     reset_s  <= axi_reset_i;
-
+    axi_bresp_o <= "00";
+    axi_bvalid_o <= '0';
+    axi_rdata_o <= (others => 'X');
+    axi_rresp_o <= "00";
+    axi_rvalid_o <= '0';
+    leds_o <= "0101010101";
+    hex0_o <= "1001111";
+    hex1_o <= "1001111";
+    
 -----------------------------------------------------------
 -- Write address channel
 
@@ -175,11 +212,13 @@ begin
 
             if axi_data_wren_s = '1' then
                 int_waddr_v   := to_integer(unsigned(axi_waddr_mem_s));
+                axi_bresp_o <= "00";
                 case int_waddr_v is
                     -- offset 0 : constante 
                     when 0   => 
                     -- offset 4 : registre de test  
                     when 4   => test_registre_address_valid <= '1';
+                    registre_test_mem <= axi_wdata_mem_s;
                     
                     --to be completed
 
@@ -194,8 +233,6 @@ begin
 -----------------------------------------------------------
 -- Write response channel
 
-
-    --to be completed
 
 
     

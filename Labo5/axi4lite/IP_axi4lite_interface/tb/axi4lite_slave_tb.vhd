@@ -55,7 +55,11 @@ architecture Behavioral of axi4lite_slave_tb is
     signal S_AXI_AWPROT        : std_logic_vector(2 downto 0);
     signal S_AXI_ARPROT        : std_logic_vector(2 downto 0);
 
-    signal  tst_reg4_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
+    -- signal  tst_reg4_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
+    signal  tst_leds_obs       : std_logic_vector(9 downto 0);
+    signal  tst_hex0_obs       : std_logic_vector(6 downto 0);
+    signal  tst_hex1_obs       : std_logic_vector(6 downto 0);
+
     signal  tst_reg5_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
     signal  tst_reg6_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
     signal  tst_reg7_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
@@ -137,15 +141,15 @@ begin
             axi_rvalid_o    => S_AXI_RVALID,
             axi_rready_i    => S_AXI_RREADY,
 
-            vect_input_A_i  => x"12345678",
-            vect_input_B_i  => x"11223344",
-            vect_input_C_i  => x"A5A5A5A5",
-            vect_input_D_i  => x"87654321",
+            switch_i  => "0011001110",
+            --leds_i  => x"11223344",
+            key_i  => "0110",
+            --vect_input_D_i  => x"87654321",
 
-            output_reg_A_o  =>  tst_reg4_obs,
-            output_reg_B_o  =>  tst_reg5_obs,
-            output_reg_C_o  =>  tst_reg6_obs,
-            output_reg_D_o  =>  tst_reg7_obs
+            leds_o  =>  tst_leds_obs,
+            hex0_o  =>  tst_hex0_obs,
+            --output_reg_C_o  =>  tst_reg6_obs,
+            hex1_o  =>  tst_hex1_obs
 
         );
 
@@ -171,14 +175,19 @@ begin
     BEGIN
         S_AXI_AWVALID<='0';
         loop
+           report "Test";
            wait until sendIt = '1';
+           report "Test2";
            wait until S_AXI_ACLK= '0';
                S_AXI_AWVALID<='1';
            wait until (S_AXI_AWREADY = '1');  --Client ready to read address
+           report "Test3";
            wait until rising_edge(S_AXI_ACLK);
+           report "Test4";
             --   assert S_AXI_BRESP = "00" report "AXI data not written" severity failure;
                S_AXI_AWVALID<='0';
         end loop;
+        report "END TEST";
     END PROCESS;
 
     -- Process which simulates the master write data channel.
@@ -267,8 +276,11 @@ begin
             report ">>Test avec table d'ecriture sur bus AXI";
 
             S_AXI_AWADDR<=std_logic_vector(to_unsigned(TAB_STI_AXI_WRITE(I_Tab).axi_awaddr_sti,S_AXI_AWADDR'length)) ;
+            report "1--";
             S_AXI_WDATA<=TAB_STI_AXI_WRITE(I_Tab).axi_wrdata_sti;
+            report "2--";
             S_AXI_WSTRB<=TAB_STI_AXI_WRITE(I_Tab).axi_wstrb_sti;
+            report "3--";
             sendIt<='1';                --Start AXI Write to Slave
             wait for 1 ns; sendIt<='0'; --Clear Start Send Flag
             wait until S_AXI_BVALID = '1';
