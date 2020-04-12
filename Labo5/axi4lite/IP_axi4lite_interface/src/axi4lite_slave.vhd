@@ -9,7 +9,7 @@
 --| Modifications |-----------------------------------------------------------
 -- Ver  Date       Auteur  Description
 -- 1.0  26.03.2019  EMI    Adaptation du chablon pour les etudiants  
---
+-- 1.1  03.04.2020  ISS    Complète le chablon pour le laboratoire 5
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -28,28 +28,39 @@ entity axi4lite_slave is
         AXI_ADDR_WIDTH  : integer   := 12
     );
     port (
+        -- AXI4-Lite 
         axi_clk_i       : in  std_logic;
         axi_reset_i     : in  std_logic;
-        -- AXI4-Lite 
+        
+        -- Write Address Channel
         axi_awaddr_i    : in  std_logic_vector(AXI_ADDR_WIDTH-1 downto 0);
-        axi_awprot_i    : in  std_logic_vector( 2 downto 0);
+        axi_awprot_i    : in  std_logic_vector( 2 downto 0);    -- not used
         axi_awvalid_i   : in  std_logic;
         axi_awready_o   : out std_logic;
+
+        -- Write Data Channel
         axi_wdata_i     : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        axi_wstrb_i     : in std_logic_vector((AXI_DATA_WIDTH/8)-1 downto 0);
+        axi_wstrb_i     : in std_logic_vector((AXI_DATA_WIDTH/8)-1 downto 0); 
         axi_wvalid_i    : in  std_logic;
         axi_wready_o    : out std_logic;
+
+        -- Write Response Channel
         axi_bresp_o     : out std_logic_vector(1 downto 0);
         axi_bvalid_o    : out std_logic;
         axi_bready_i    : in  std_logic;
+
+        -- Read Address Channel
         axi_araddr_i    : in  std_logic_vector(AXI_ADDR_WIDTH-1 downto 0);
-        axi_arprot_i    : in  std_logic_vector( 2 downto 0);
+        axi_arprot_i    : in  std_logic_vector( 2 downto 0);    -- not used
         axi_arvalid_i   : in  std_logic;
         axi_arready_o   : out std_logic;
+
+        -- Read Data Channel
         axi_rdata_o     : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         axi_rresp_o     : out std_logic_vector(1 downto 0);
         axi_rvalid_o    : out std_logic;
         axi_rready_i    : in  std_logic
+
         -- User input-output
         
         
@@ -60,6 +71,10 @@ architecture rtl of axi4lite_slave is
 
     signal reset_s : std_logic;
 
+    
+    signal test_registre_address_valid : std_logic;
+    
+    
     -- local parameter for addressing 32 bit / 64 bits, cst: AXI_DATA_WIDTH
     -- ADDR_LSB is used for addressing word 32/64 bits registers/memories
     -- ADDR_LSB = 2 for 32 bits (n-1 downto 2)
@@ -71,9 +86,18 @@ architecture rtl of axi4lite_slave is
     signal axi_awready_s       : std_logic;
     signal axi_arready_s       : std_logic;
 
+    signal axi_wready_s       : std_logic;
+    signal axi_rready_s       : std_logic;
+    
+    -- write enable 
+    signal axi_data_wren_s       : std_logic;
+    
      --intern signal for the axi interface
     signal axi_waddr_mem_s     : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
     signal axi_araddr_mem_s    : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
+    
+    signal axi_wdata_mem_s     : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
+    -- signal axi_araddr_mem_s    : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
 
 begin
 
@@ -106,18 +130,26 @@ begin
 -- Write data channel
 
     -- Implement axi_wready generation
-    process (reset_s, clk_i)
+    process (reset_s, axi_clk_i)
     begin
+        
+        
         if reset_s = '1' then
-            axi_waddr_done_s <= '0'; 
+            --axi_waddr_done_s <= '0'; 
             axi_wready_s    <= '0';
-        elsif rising_edge(clk_i) then
-
-        
-          --to be completed
-           
-        
-        
+        elsif rising_edge(axi_clk_i) then
+            if (axi_wready_s = '0' and axi_wvalid_i = '1')  then 
+                -- slave is ready to accept write data when
+                -- there is a valid write data
+                axi_wready_s <= '1';
+                -- Write Data memorizing
+                axi_wdata_mem_s <= axi_wdata_i(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
+                -- Read axi_wstrb_i
+            else
+                axi_wready_s <= '0';
+            
+            
+            end if;
         end if;
     end process;
     
@@ -125,27 +157,29 @@ begin
 
 
     --condition to write data
-    axi_data_wren_s <=  --to be completed....     ;
+    axi_data_wren_s <=  axi_wready_s ; --to be completed....     ;
     
     
-    process (reset_s, clk_i)
+    process (reset_s, axi_clk_i)
         --number address to access 32 or 64 bits data
         variable int_waddr_v : natural;
     begin
         if reset_s = '1' then
             
-          --to be completed
+            --to be completed
+            axi_data_wren_s <= '0';
             
+            test_registre_address_valid <= '0';
             
-        elsif rising_edge(clk_i) then
+        elsif rising_edge(axi_clk_i) then
 
             if axi_data_wren_s = '1' then
                 int_waddr_v   := to_integer(unsigned(axi_waddr_mem_s));
                 case int_waddr_v is
-                    when 0   => .....
-                    
-                    when 1   => .....
-                    
+                    -- offset 0 : constante 
+                    when 0   => 
+                    -- offset 4 : registre de test  
+                    when 4   => test_registre_address_valid <= '1';
                     
                     --to be completed
 
@@ -191,6 +225,7 @@ begin
 -- Read data channel
 
     --to be completed
+    
 
 
 
