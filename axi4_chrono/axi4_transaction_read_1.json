@@ -1,0 +1,14 @@
+{signal: [
+  {name: 'axi_clk',   wave: 'p........'},
+  {name: 'Read address', },
+  {name: 'axi_araddr',  wave: 'x=..x....', data: ["valide"]},
+  {name: 'axi_arvalid', wave: '01..0....'},
+  {name: 'axi_arready', wave: '0..10....'},
+  {name: 'Read data', },
+  {name: 'axi_rdata',  wave: 'x..=..x..', data: ["valide"]},
+  {name: 'axi_rvalid', wave: '0..1..0..'},
+  {name: 'axi_rready', wave: '0....10..'},
+  {name: 'axi_rresp',  wave: 'x..=..x..', data: ["00"]},  
+  {                                node: '....a.b '}
+ ],
+}
