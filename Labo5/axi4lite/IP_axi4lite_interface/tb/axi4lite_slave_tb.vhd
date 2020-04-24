@@ -175,19 +175,14 @@ begin
     BEGIN
         S_AXI_AWVALID<='0';
         loop
-           report "Test";
            wait until sendIt = '1';
-           report "Test2";
            wait until S_AXI_ACLK= '0';
                S_AXI_AWVALID<='1';
            wait until (S_AXI_AWREADY = '1');  --Client ready to read address
-           report "Test3";
            wait until rising_edge(S_AXI_ACLK);
-           report "Test4";
             --   assert S_AXI_BRESP = "00" report "AXI data not written" severity failure;
                S_AXI_AWVALID<='0';
         end loop;
-        report "END TEST";
     END PROCESS;
 
     -- Process which simulates the master write data channel.
@@ -276,11 +271,8 @@ begin
             report ">>Test avec table d'ecriture sur bus AXI";
 
             S_AXI_AWADDR<=std_logic_vector(to_unsigned(TAB_STI_AXI_WRITE(I_Tab).axi_awaddr_sti,S_AXI_AWADDR'length)) ;
-            report "1--";
             S_AXI_WDATA<=TAB_STI_AXI_WRITE(I_Tab).axi_wrdata_sti;
-            report "2--";
             S_AXI_WSTRB<=TAB_STI_AXI_WRITE(I_Tab).axi_wstrb_sti;
-            report "3--";
             sendIt<='1';                --Start AXI Write to Slave
             wait for 1 ns; sendIt<='0'; --Clear Start Send Flag
             wait until S_AXI_BVALID = '1';
