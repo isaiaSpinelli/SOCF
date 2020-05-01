@@ -56,9 +56,9 @@ architecture Behavioral of axi4lite_slave_tb is
     signal S_AXI_ARPROT        : std_logic_vector(2 downto 0);
 
     -- signal  tst_reg4_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
-    signal  tst_leds_obs       : std_logic_vector(9 downto 0);
-    signal  tst_hex0_obs       : std_logic_vector(6 downto 0);
-    signal  tst_hex1_obs       : std_logic_vector(6 downto 0);
+    signal  tst_leds_obs       : std_logic_vector(31 downto 0);
+    signal  tst_hex0_obs       : std_logic_vector(31 downto 0);
+    signal  tst_hex1_obs       : std_logic_vector(31 downto 0);
 
     signal  tst_reg5_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
     signal  tst_reg6_obs       : std_logic_vector(C_S_AXI_DATA_WIDTH-1 downto 0);
@@ -141,9 +141,9 @@ begin
             axi_rvalid_o    => S_AXI_RVALID,
             axi_rready_i    => S_AXI_RREADY,
 
-            switch_i  => "0011001110",
+            switch_i  => x"0000000a",
             --leds_i  => x"11223344",
-            key_i  => "0110",
+            key_i  => x"aaaaaaaa",
             --vect_input_D_i  => x"87654321",
 
             leds_o  =>  tst_leds_obs,
