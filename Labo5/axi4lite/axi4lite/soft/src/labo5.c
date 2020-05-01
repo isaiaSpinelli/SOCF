@@ -92,7 +92,11 @@ int main(void){
 	//enable_A9_interrupts();    // enable interrupts in the A9 processor
 
 	AXI_HEX5 = 0x40;
-	AXI_HEX4 = 0xC0;
+	AXI_HEX4 = 0xF9;
+	AXI_HEX3 = 0x24;
+	AXI_HEX2 = 0x30;
+	AXI_HEX1 = 0x19;
+	AXI_HEX0 = 0x12;
 
 	AXI_LEDS = AXI_SWITCHES;
 
