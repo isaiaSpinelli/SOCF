@@ -44,6 +44,19 @@ typedef volatile unsigned int vuint;
 
 #define AXI_REG_TEST			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x4)
 
+#define AXI_LEDS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x100)
+
+#define AXI_KEYS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x200)
+
+#define AXI_SWITCHES			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x300)
+
+#define AXI_HEX0				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x400)
+#define AXI_HEX1				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x410)
+#define AXI_HEX2				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x420)
+#define AXI_HEX3				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x430)
+#define AXI_HEX4				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x440)
+#define AXI_HEX5				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x450)
+
 /* adresse des leds */
 #define FPAG_LED        	*(vuint *)(FPGA_BASE_ADDR_IO + 0x0)
 /* adresse des switches */
@@ -77,6 +90,11 @@ int main(void){
 	//config_GIC();              // configure the general interrupt controller
 	//config_KEYs();             // configure KEYs to generate interrupts
 	//enable_A9_interrupts();    // enable interrupts in the A9 processor
+
+	AXI_HEX5 = 0x40;
+	AXI_HEX4 = 0xC0;
+
+	AXI_LEDS = AXI_SWITCHES;
 
 	unsigned int cst = AXI_REG_CONST;
 

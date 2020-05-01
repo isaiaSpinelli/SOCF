@@ -62,8 +62,8 @@ entity axi4lite_slave is
         axi_rready_i    : in  std_logic;
 
         -- User input-output
-        switch_i        : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => 'X');
-        key_i           : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0)  := (others => 'X');
+        switch_i        : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        key_i           : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         
         leds_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         
@@ -144,15 +144,6 @@ begin
     -- valeurs par défaut :
     reset_s  <= axi_reset_i;
     
-    leds_o <= x"00000155"; -- "0101010101";
-    
-    hex0_o <= x"00000040";
-    hex1_o <= x"000000F9";
-    hex2_o <= x"00000024";
-    hex3_o <= x"00000030";
-    hex4_o <= x"00000019";
-    hex5_o <= x"00000012";
-    
     registre_switch_mem <= switch_i(9 downto 0);
     registre_key_mem    <= key_i(3 downto 0);
     
@@ -227,17 +218,14 @@ begin
             
             -- Valeur par défaut : RESET 
             registre_test_mem <= x"12345678";
-            registre_led_mem  <= "0101010101"; -- x"00000155";
-            registre_hex0_mem <= "0111111" ; --"x"00000040";
-            registre_hex1_mem <= "0000110"; --x"000000F9";
+            registre_led_mem  <= "0101010101";
+            registre_hex0_mem <= "0111111" ;
+            registre_hex1_mem <= "0000110"; 
             registre_hex2_mem <= "1011011";
             registre_hex3_mem <= "1001111";
             registre_hex4_mem <= "1100110";
             registre_hex5_mem <= "1101101";
             
-            registre_switch_mem <= switch_i(9 downto 0);
-            registre_key_mem    <= key_i(3 downto 0);
-
             
         elsif rising_edge(axi_clk_i) then
 
@@ -253,21 +241,21 @@ begin
                         
                     -- offset 64 : leds 
                     when 64   => 
-                        registre_led_mem <= axi_wdata_mem_s;
+                        registre_led_mem <= axi_wdata_mem_s(9 downto 0);
                         
                     -- offset 256 - 276 : afficheur 7 seg
                     when 256   => 
-                        registre_hex0_mem <= axi_wdata_mem_s;
+                        registre_hex0_mem <= axi_wdata_mem_s(6 downto 0);
                     when 260   => 
-                        registre_hex1_mem <= axi_wdata_mem_s;
+                        registre_hex1_mem <= axi_wdata_mem_s(6 downto 0);
                     when 264   => 
-                        registre_hex2_mem <= axi_wdata_mem_s;
+                        registre_hex2_mem <= axi_wdata_mem_s(6 downto 0);
                     when 268   => 
-                        registre_hex3_mem <= axi_wdata_mem_s;
+                        registre_hex3_mem <= axi_wdata_mem_s(6 downto 0);
                     when 272   => 
-                        registre_hex4_mem <= axi_wdata_mem_s;
+                        registre_hex4_mem <= axi_wdata_mem_s(6 downto 0);
                     when 276   => 
-                        registre_hex5_mem <= axi_wdata_mem_s;
+                        registre_hex5_mem <= axi_wdata_mem_s(6 downto 0);
                         
                         
                     when others => null;
@@ -366,27 +354,27 @@ begin
                         axi_rdata_mem_s <= registre_test_mem;
                     -- Lecture des leds
                     when 64   =>
-                        axi_rdata_mem_s <= registre_led_mem;
+                        axi_rdata_mem_s(9 downto 0) <= registre_led_mem;
                      -- Lecture des keys
                     when 128   =>
-                        axi_rdata_mem_s <= registre_key_mem;
+                        axi_rdata_mem_s(3 downto 0) <= registre_key_mem;
                     -- Lecture des switches
                     when 192   =>
-                        axi_rdata_mem_s <= registre_switch_mem;
+                        axi_rdata_mem_s(9 downto 0) <= registre_switch_mem;
                         
                     -- Lecture d'un afficheur 7 seg (256 - 276)
                     when 256   =>
-                        axi_rdata_mem_s <= registre_hex0_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex0_mem;
                     when 260   =>
-                        axi_rdata_mem_s <= registre_hex1_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex1_mem;
                     when 264   =>
-                        axi_rdata_mem_s <= registre_hex2_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex2_mem;
                     when 268   =>
-                        axi_rdata_mem_s <= registre_hex3_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex3_mem;
                     when 272   =>
-                        axi_rdata_mem_s <= registre_hex4_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex4_mem;
                     when 276   =>
-                        axi_rdata_mem_s <= registre_hex5_mem;
+                        axi_rdata_mem_s(6 downto 0) <= registre_hex5_mem;
                         
                         
                     when others => 
