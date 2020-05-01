@@ -62,17 +62,17 @@ entity axi4lite_slave is
         axi_rready_i    : in  std_logic;
 
         -- User input-output
-        switch_i        : in  std_logic_vector(31 downto 0) := (others => 'X');
-        key_i           : in  std_logic_vector(31 downto 0)  := (others => 'X');
+        switch_i        : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => 'X');
+        key_i           : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0)  := (others => 'X');
         
-        leds_o          : out std_logic_vector(31 downto 0);
+        leds_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         
-        hex0_o          : out std_logic_vector(31 downto 0);
-        hex1_o          : out std_logic_vector(31 downto 0);
-        hex2_o          : out std_logic_vector(31 downto 0);
-        hex3_o          : out std_logic_vector(31 downto 0);
-        hex4_o          : out std_logic_vector(31 downto 0);
-        hex5_o          : out std_logic_vector(31 downto 0)
+        hex0_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        hex1_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        hex2_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        hex3_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        hex4_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+        hex5_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0)
     );
 end entity axi4lite_slave;
 
@@ -89,6 +89,8 @@ architecture rtl of axi4lite_slave is
     -- ADDR_LSB = 2 for 32 bits (n-1 downto 2)
     -- ADDR_LSB = 3 for 64 bits (n-1 downto 3)
     constant ADDR_LSB  : integer := (AXI_DATA_WIDTH/32)+ 1;
+    
+    --------------- SIGNAUX AXI LIGHT -------------------
     
     --signal for the AXI slave
     --intern signal for output
@@ -120,7 +122,7 @@ architecture rtl of axi4lite_slave is
     --------------- SIGNAUX ENTREES / SORTIES ---------------
     
     constant registre_cst_mem : std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"deedbeef";
-    signal registre_test_mem : std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= (others => '0');
+    signal registre_test_mem : std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"12345678";
     
     -- signal for registre input (switch / key)
     signal registre_switch_mem : std_logic_vector(9 downto 0) := (others => 'X');
@@ -139,22 +141,20 @@ architecture rtl of axi4lite_slave is
     
 begin
 
-    -- default values 
+    -- valeurs par défaut :
     reset_s  <= axi_reset_i;
-    --axi_bresp_o <= "00";
-    --axi_bresp_s <= "00";
-    --axi_bvalid_o <= '0';
-    --axi_rdata_o <= (others => 'X');
-    --axi_rresp_o <= "00";
-    --axi_rvalid_o <= '0';
-    leds_o(9 downto 0) <= "0101010101";
-    --leds_o(31 downto 10) <= (others => '0');
     
-    hex0_o(6 downto 0) <= "1001111";
-    hex0_o(31 downto 7) <= (others => '0');
+    leds_o <= x"00000155"; -- "0101010101";
     
-    hex1_o(6 downto 0) <= "1001111";
-    hex1_o(31 downto 7) <= (others => '0');
+    hex0_o <= x"00000040";
+    hex1_o <= x"000000F9";
+    hex2_o <= x"00000024";
+    hex3_o <= x"00000030";
+    hex4_o <= x"00000019";
+    hex5_o <= x"00000012";
+    
+    registre_switch_mem <= switch_i(9 downto 0);
+    registre_key_mem    <= key_i(3 downto 0);
     
 -----------------------------------------------------------
 -- Write address channel
@@ -225,10 +225,19 @@ begin
     begin
         if reset_s = '1' then
             
-            --to be completed
-            --axi_data_wren_s <= '0';
-        
-            test_registre_address_valid <= '0';
+            -- Valeur par défaut : RESET 
+            registre_test_mem <= x"12345678";
+            registre_led_mem  <= "0101010101"; -- x"00000155";
+            registre_hex0_mem <= "0111111" ; --"x"00000040";
+            registre_hex1_mem <= "0000110"; --x"000000F9";
+            registre_hex2_mem <= "1011011";
+            registre_hex3_mem <= "1001111";
+            registre_hex4_mem <= "1100110";
+            registre_hex5_mem <= "1101101";
+            
+            registre_switch_mem <= switch_i(9 downto 0);
+            registre_key_mem    <= key_i(3 downto 0);
+
             
         elsif rising_edge(axi_clk_i) then
 
@@ -239,13 +248,28 @@ begin
                     -- offset 0 : constante 
                     when 0   => 
                     -- offset 4 : registre de test  
-                    when 1   => test_registre_address_valid <= '1';
-                    registre_test_mem <= axi_wdata_mem_s;
-
-                    
-                    --to be completed
-
-
+                    when 1   => 
+                        registre_test_mem <= axi_wdata_mem_s;
+                        
+                    -- offset 64 : leds 
+                    when 64   => 
+                        registre_led_mem <= axi_wdata_mem_s;
+                        
+                    -- offset 256 - 276 : afficheur 7 seg
+                    when 256   => 
+                        registre_hex0_mem <= axi_wdata_mem_s;
+                    when 260   => 
+                        registre_hex1_mem <= axi_wdata_mem_s;
+                    when 264   => 
+                        registre_hex2_mem <= axi_wdata_mem_s;
+                    when 268   => 
+                        registre_hex3_mem <= axi_wdata_mem_s;
+                    when 272   => 
+                        registre_hex4_mem <= axi_wdata_mem_s;
+                    when 276   => 
+                        registre_hex5_mem <= axi_wdata_mem_s;
+                        
+                        
                     when others => null;
                 end case;
             end if;
@@ -334,16 +358,37 @@ begin
                 axi_rresp_s    <= "00";
                 --axi_bresp_o <= "00";
                 case int_raddr_v is
-                    -- offset 0 : constante 
+                    -- Lecture de la constante 
                     when 0   =>  
                         axi_rdata_mem_s <= registre_cst_mem;
-                    -- offset 4 : registre de test  
+                    -- Lecture du registre de test  
                     when 1   =>
                         axi_rdata_mem_s <= registre_test_mem;
-
-                    
-
-
+                    -- Lecture des leds
+                    when 64   =>
+                        axi_rdata_mem_s <= registre_led_mem;
+                     -- Lecture des keys
+                    when 128   =>
+                        axi_rdata_mem_s <= registre_key_mem;
+                    -- Lecture des switches
+                    when 192   =>
+                        axi_rdata_mem_s <= registre_switch_mem;
+                        
+                    -- Lecture d'un afficheur 7 seg (256 - 276)
+                    when 256   =>
+                        axi_rdata_mem_s <= registre_hex0_mem;
+                    when 260   =>
+                        axi_rdata_mem_s <= registre_hex1_mem;
+                    when 264   =>
+                        axi_rdata_mem_s <= registre_hex2_mem;
+                    when 268   =>
+                        axi_rdata_mem_s <= registre_hex3_mem;
+                    when 272   =>
+                        axi_rdata_mem_s <= registre_hex4_mem;
+                    when 276   =>
+                        axi_rdata_mem_s <= registre_hex5_mem;
+                        
+                        
                     when others => 
                         axi_rresp_s    <= "00";
                 end case;
@@ -358,15 +403,26 @@ begin
             end if;
         end if;
     end process;
-    
+
+    -- Mise à jour de la validité de lecture
     axi_rvalid_o <= axi_rvalid_s;
     
-    
+    -- Mise à jour des données lues
     axi_rdata_o <= axi_rdata_mem_s;
     
+    -- Mise à jour de la réponse de lecture
     axi_rresp_o <= axi_rresp_s;
-
-
+    
+    
+    -- Mise à jour des sorties
+    leds_o(9 downto 0)     <=  registre_led_mem;   
+        
+    hex0_o(6 downto 0)     <=  registre_hex0_mem;   
+    hex1_o(6 downto 0)     <=  registre_hex1_mem;   
+    hex2_o(6 downto 0)     <=  registre_hex2_mem;   
+    hex3_o(6 downto 0)     <=  registre_hex3_mem;   
+    hex4_o(6 downto 0)     <=  registre_hex4_mem;   
+    hex5_o(6 downto 0)     <=  registre_hex5_mem;   
 
 
 end rtl;
