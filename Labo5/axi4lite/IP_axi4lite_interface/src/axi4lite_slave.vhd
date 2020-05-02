@@ -219,12 +219,12 @@ begin
             -- Valeur par défaut : RESET 
             registre_test_mem <= x"12345678";
             registre_led_mem  <= "0101010101";
-            registre_hex0_mem <= "0111111" ;
-            registre_hex1_mem <= "0000110"; 
-            registre_hex2_mem <= "1011011";
-            registre_hex3_mem <= "1001111";
-            registre_hex4_mem <= "1100110";
-            registre_hex5_mem <= "1101101";
+            registre_hex0_mem <= "1000000" ;
+            registre_hex1_mem <= "1111001"; 
+            registre_hex2_mem <= "0100100";
+            registre_hex3_mem <= "0110000";
+            registre_hex4_mem <= "0011001";
+            registre_hex5_mem <= "0010010";
             
             
         elsif rising_edge(axi_clk_i) then

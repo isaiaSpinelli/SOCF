@@ -70,7 +70,7 @@ int main(void){
 	char tab_dec_to_hex_7seg[16] = {0x40, 0xF9, 0x24, 0x30, 0x19, 0x12, 0x02, 0xF8, 0x00, 0x10, 0x08, 0x03, 0x27, 0x21, 0x06, 0x0e };
 	
 	int led_tmp,Seg_tmp;
-	char key2_actif = 0, key3_actif = 0;
+	char key2_actif, key3_actif = 0;
 	
 	disable_A9_interrupts();   // disable interrupts in the A9 processor
 	//set_A9_IRQ_stack();        // initialize the stack pointer for IRQ mode
@@ -89,14 +89,18 @@ int main(void){
 	AXI_LEDS = AXI_SWITCHES;
 
 	unsigned int cst = AXI_REG_CONST;
+	unsigned int cst1 = AXI_REG_CONST_CHAR;
+	unsigned int cst2 = AXI_REG_CONST_SHORT;
+	
+	unsigned int regTest = AXI_REG_TEST;
+
 	
     
     while(1){
 		/* Appuie sur KEY 0*/
 		if ((AXI_KEYS & KEY0) == 0) {
-			// l'états des switches est copiés sur les LEDs.
 			AXI_LEDS = AXI_SWITCHES;
-			// Les afficheurs HEX5 à HEX0 affichent en hexadécimal les bits 23 à 0 de la constante définie dans l’IP.
+			
 			AXI_HEX0 = tab_dec_to_hex_7seg[cst & 0xF];
 			AXI_HEX1 = tab_dec_to_hex_7seg[(cst>>4)  & 0xF];
 			AXI_HEX2 = tab_dec_to_hex_7seg[(cst>>8)  & 0xF];
@@ -107,11 +111,8 @@ int main(void){
 
 		/* Appuie sur KEY 1 */
 		} else if ((AXI_KEYS & KEY1) == 0) {
-			//  l'états inverses des switches est copiés sur les LEDs.
 			AXI_LEDS = ~AXI_SWITCHES;
 			
-			// Les afficheurs HEX5 à HEX0 affichent en hexadécimal l’inverse des bits 23 à 0 de la
-			// constante définie dans l’IP.
 			AXI_HEX0 = ~tab_dec_to_hex_7seg[cst & 0xF];
 			AXI_HEX1 = ~tab_dec_to_hex_7seg[(cst>>4)  & 0xF];
 			AXI_HEX2 = ~tab_dec_to_hex_7seg[(cst>>8)  & 0xF];
@@ -119,10 +120,11 @@ int main(void){
 			AXI_HEX4 = ~tab_dec_to_hex_7seg[(cst>>16) & 0xF];
 			AXI_HEX5 = ~tab_dec_to_hex_7seg[(cst>>20) & 0xF];
 
-		// Si le bouton 2 est pressé
 		} else if ((AXI_KEYS & KEY2) == 0) {
-			// Si il n'était pas déjà actif
-			if ( !key2_actif ) {
+			
+			if ( key2_actif ) {
+				
+			} else {
 				key2_actif = 1;
 				/*  l’affichage des LEDs et des afficheurs 7 segments subit unerotation à droite */
 				led_tmp = AXI_LEDS & 0x1;
@@ -137,10 +139,13 @@ int main(void){
 				AXI_HEX5 = Seg_tmp;
 			}
 			
-		// Si le bouton 3 est pressé
+			
+			
 		} else if ((AXI_KEYS & KEY3) == 0) {
-			// Si il n'était pas déjà actif
-			if ( !key3_actif ) {
+			
+			if ( key3_actif ) {
+				
+			} else {
 				key3_actif = 1;
 				/* l’affichage des LEDs et des afficheurs 7 segments subit une rotation à gauche */
 				led_tmp = AXI_LEDS & 0x200;
@@ -153,11 +158,10 @@ int main(void){
 				AXI_HEX2 = AXI_HEX1;
 				AXI_HEX1 = AXI_HEX0;
 				AXI_HEX0 = Seg_tmp;
-			}
+			}	
 			
 			
 		} else {
-			// Remet à 0 les boutons 2 et 3
 			key2_actif = 0;
 			key3_actif = 0;
 		}
@@ -167,5 +171,45 @@ int main(void){
 }
 
 void pushbutton_ISR(void){
-
+	
+	int Seg_tmp ;
+	int led_tmp;
+	int press;
+	
+	volatile int*KEY_ptr = (int*) &FPAG_KEY;
+	
+	press =*(KEY_ptr + 3);     // read the pushbutton interrupt register
+	*(KEY_ptr + 3) = press;     // Clear the interrupt
+	
+	/* Appuie sur KEY 2 */
+	if (press & 0x4) {
+		/*  l’affichage des LEDs et des afficheurs 7 segments subit unerotation à droite */
+		led_tmp = FPAG_LED & 0x1;
+		FPAG_LED = (FPAG_LED >> 1) | (led_tmp << 9);
+		
+		Seg_tmp = FPAG_7SEG_0;
+		FPAG_7SEG_0 = FPAG_7SEG_1;
+		FPAG_7SEG_1 = FPAG_7SEG_2;
+		FPAG_7SEG_2 = FPAG_7SEG_3;
+		FPAG_7SEG_3 = FPAG_7SEG_4;
+		FPAG_7SEG_4 = FPAG_7SEG_5;
+		FPAG_7SEG_5 = Seg_tmp;
+	
+	/* Appuie sur KEY 3 */	
+	} else if (press & 0x8)  {
+		/* l’affichage des LEDs et des afficheurs 7 segmentssubit une rotation à gauche */
+		led_tmp = FPAG_LED & 0x200;
+		FPAG_LED = (FPAG_LED << 1) | (led_tmp >> 9);
+		
+		Seg_tmp = FPAG_7SEG_5;
+		FPAG_7SEG_5 = FPAG_7SEG_4;
+		FPAG_7SEG_4 = FPAG_7SEG_3;
+		FPAG_7SEG_3 = FPAG_7SEG_2;
+		FPAG_7SEG_2 = FPAG_7SEG_1;
+		FPAG_7SEG_1 = FPAG_7SEG_0;
+		FPAG_7SEG_0 = Seg_tmp;
+	}
+	
+	return;
+	
 }
