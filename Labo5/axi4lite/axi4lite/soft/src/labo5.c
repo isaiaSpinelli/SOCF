@@ -16,13 +16,13 @@
  *****************************************************************************************
  * Brief: Programme for labo 5 of SOCF, for DE1-SoC board
  *
- * Remarque : Tous les 6 interruptions, change le masque entre KEy 2 et KEY 3
+ * Remarque : Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3
  *
  *****************************************************************************************
  * Modifications :
  * Ver    Date        Student      Comments
- * 0.1	  01.05.20	  Isaia Spinelli
- *
+ * 0.1	  01.05.20	  Isaia Spinelli : Modif pour la partie 1
+ * 1.1	  03.05.20	  Isaia Spinelli : Ajout de la partie 2
 *****************************************************************************************/
 
 #define KEY0 0x01
@@ -171,24 +171,29 @@ int main(void){
 }
 
 /* Routine d'interruption */
-/* Remarque : Tous les 6 interruptions, change le masque entre KEy 2 et KEY 3 */
+/* Remarque : Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3 */
 void pushbutton_ISR(void){
 	static int cpt_int = 0;
 	/* Lecture et acquitement des interruptions */
 	int src_irq = AXI_INT_SRC;
 	
 	// Key2 pressé
-	if (src_irq & 0x04) {
+	if (src_irq & KEY2) {
 		irqKey2 = 1;
 	} 
 	
 	// Key3 pressé
-	if (src_irq & 0x08) {
+	if (src_irq & KEY3) {
 		irqKey3 = 1;
 	} 
 	
-	// Tous les 6 interruptions, change le masque de key 2 et 3
-	if (cpt_int++ % 6 == 0){
-		AXI_INT_MASK = AXI_INT_MASK ^ (KEY3 | KEY2);
+	
+	// Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3
+	if (src_irq & KEY0 || src_irq & KEY1) {
+		cpt_int++;
+		
+		if (cpt_int % 3 == 0)
+			AXI_INT_MASK = AXI_INT_MASK ^ (KEY3 | KEY2);
 	}
+	
 }
