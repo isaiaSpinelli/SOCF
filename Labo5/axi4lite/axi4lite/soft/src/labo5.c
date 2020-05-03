@@ -16,6 +16,8 @@
  *****************************************************************************************
  * Brief: Programme for labo 5 of SOCF, for DE1-SoC board
  *
+ * Remarque : Tous les 6 interruptions, change le masque entre KEy 2 et KEY 3
+ *
  *****************************************************************************************
  * Modifications :
  * Ver    Date        Student      Comments
@@ -46,6 +48,10 @@ typedef volatile unsigned int vuint;
 #define AXI_LEDS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x100)
 
 #define AXI_KEYS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x200)
+// Lecture de la source d'int. + acquitement
+#define AXI_INT_SRC				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x204)
+// 1 = interruption masquée
+#define AXI_INT_MASK			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x208)
 
 #define AXI_SWITCHES			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x300)
 
@@ -56,6 +62,10 @@ typedef volatile unsigned int vuint;
 #define AXI_HEX4				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x440)
 #define AXI_HEX5				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x450)
 
+int irqKey2 = 0;
+int irqKey3 = 0;
+
+// Modif : lecuture du masque à 0 !!
 
 
 void disable_A9_interrupts (void);
@@ -68,17 +78,10 @@ int main(void){
 	
 	// tableau de converssion		  0 	1	  2		3	 4		5	 6	   7      8     9    a      b    c      d     e    f
 	char tab_dec_to_hex_7seg[16] = {0x40, 0xF9, 0x24, 0x30, 0x19, 0x12, 0x02, 0xF8, 0x00, 0x10, 0x08, 0x03, 0x27, 0x21, 0x06, 0x0e };
-	
 	int led_tmp,Seg_tmp;
-	char key2_actif = 0, key3_actif = 0;
 	
-	disable_A9_interrupts();   // disable interrupts in the A9 processor
-	//set_A9_IRQ_stack();        // initialize the stack pointer for IRQ mode
-	//config_GIC();              // configure the general interrupt controller
-	//config_KEYs();             // configure KEYs to generate interrupts
-	//enable_A9_interrupts();    // enable interrupts in the A9 processor
-
-	/* INTI */
+	
+	/*---------- INTI ----------*/
 	AXI_HEX5 = 0x40;
 	AXI_HEX4 = 0xF9;
 	AXI_HEX3 = 0x24;
@@ -89,6 +92,17 @@ int main(void){
 	AXI_LEDS = AXI_SWITCHES;
 
 	unsigned int cst = AXI_REG_CONST;
+	
+	// Masque le bouton key3
+	AXI_INT_MASK = KEY3;
+	
+	disable_A9_interrupts();   // disable interrupts in the A9 processor
+	set_A9_IRQ_stack();        // initialize the stack pointer for IRQ mode
+	config_GIC();              // configure the general interrupt controller
+	config_KEYs();             // configure KEYs to generate interrupts
+	enable_A9_interrupts();    // enable interrupts in the A9 processor
+
+	
 	
     
     while(1){
@@ -119,53 +133,62 @@ int main(void){
 			AXI_HEX4 = ~tab_dec_to_hex_7seg[(cst>>16) & 0xF];
 			AXI_HEX5 = ~tab_dec_to_hex_7seg[(cst>>20) & 0xF];
 
-		// Si le bouton 2 est pressé
-		} else if ((AXI_KEYS & KEY2) == 0) {
-			// Si il n'était pas déjà actif
-			if ( !key2_actif ) {
-				key2_actif = 1;
-				/*  l’affichage des LEDs et des afficheurs 7 segments subit unerotation à droite */
-				led_tmp = AXI_LEDS & 0x1;
-				AXI_LEDS = ((AXI_LEDS & 0x3ff) >> 1) | (led_tmp << 9);
-				
-				Seg_tmp = AXI_HEX0;
-				AXI_HEX0 = AXI_HEX1;
-				AXI_HEX1 = AXI_HEX2;
-				AXI_HEX2 = AXI_HEX3;
-				AXI_HEX3 = AXI_HEX4;
-				AXI_HEX4 = AXI_HEX5;
-				AXI_HEX5 = Seg_tmp;
-			}
-			
-		// Si le bouton 3 est pressé
-		} else if ((AXI_KEYS & KEY3) == 0) {
-			// Si il n'était pas déjà actif
-			if ( !key3_actif ) {
-				key3_actif = 1;
-				/* l’affichage des LEDs et des afficheurs 7 segments subit une rotation à gauche */
-				led_tmp = AXI_LEDS & 0x200;
-				AXI_LEDS = (AXI_LEDS << 1) | (led_tmp >> 9);
-				
-				Seg_tmp = AXI_HEX5;
-				AXI_HEX5 = AXI_HEX4;
-				AXI_HEX4 = AXI_HEX3;
-				AXI_HEX3 = AXI_HEX2;
-				AXI_HEX2 = AXI_HEX1;
-				AXI_HEX1 = AXI_HEX0;
-				AXI_HEX0 = Seg_tmp;
-			}
-			
-			
-		} else {
-			// Remet à 0 les boutons 2 et 3
-			key2_actif = 0;
-			key3_actif = 0;
-		}
-		
-	}
+		// Si le bouton 2 est pressé (via une interruption)
+		} else if (irqKey2) {
+			irqKey2 = 0;
 
+			/*  l’affichage des LEDs et des afficheurs 7 segments subit unerotation à droite */
+			led_tmp = AXI_LEDS & 0x1;
+			AXI_LEDS = ((AXI_LEDS & 0x3ff) >> 1) | (led_tmp << 9);
+			
+			Seg_tmp = AXI_HEX0;
+			AXI_HEX0 = AXI_HEX1;
+			AXI_HEX1 = AXI_HEX2;
+			AXI_HEX2 = AXI_HEX3;
+			AXI_HEX3 = AXI_HEX4;
+			AXI_HEX4 = AXI_HEX5;
+			AXI_HEX5 = Seg_tmp;
+			
+			
+		// Si le bouton 3 est pressé (via une interruption)
+		} else if (irqKey3) {
+			irqKey3 = 0;
+
+			/* l’affichage des LEDs et des afficheurs 7 segments subit une rotation à gauche */
+			led_tmp = AXI_LEDS & 0x200;
+			AXI_LEDS = (AXI_LEDS << 1) | (led_tmp >> 9);
+			
+			Seg_tmp = AXI_HEX5;
+			AXI_HEX5 = AXI_HEX4;
+			AXI_HEX4 = AXI_HEX3;
+			AXI_HEX3 = AXI_HEX2;
+			AXI_HEX2 = AXI_HEX1;
+			AXI_HEX1 = AXI_HEX0;
+			AXI_HEX0 = Seg_tmp;
+
+		}
+	}
 }
 
+/* Routine d'interruption */
+/* Remarque : Tous les 6 interruptions, change le masque entre KEy 2 et KEY 3 */
 void pushbutton_ISR(void){
-
+	static int cpt_int = 0;
+	/* Lecture et acquitement des interruptions */
+	int src_irq = AXI_INT_SRC;
+	
+	// Key2 pressé
+	if (src_irq & 0x04) {
+		irqKey2 = 1;
+	} 
+	
+	// Key3 pressé
+	if (src_irq & 0x08) {
+		irqKey3 = 1;
+	} 
+	
+	// Tous les 6 interruptions, change le masque de key 2 et 3
+	if (cpt_int++ % 6 == 0){
+		AXI_INT_MASK = AXI_INT_MASK ^ (KEY3 | KEY2);
+	}
 }

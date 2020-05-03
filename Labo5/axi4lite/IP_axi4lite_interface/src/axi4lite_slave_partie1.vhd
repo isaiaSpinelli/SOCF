@@ -72,11 +72,7 @@ entity axi4lite_slave is
         hex2_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         hex3_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         hex4_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex5_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-		
-		
-		-- Interruption
-		irq_o 			: out std_logic
+        hex5_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0)
     );
 end entity axi4lite_slave;
 
@@ -88,63 +84,56 @@ architecture rtl of axi4lite_slave is
     -- ADDR_LSB is used for addressing word 32/64 bits registers/memories
     -- ADDR_LSB = 2 for 32 bits (n-1 downto 2)
     -- ADDR_LSB = 3 for 64 bits (n-1 downto 3)
-    constant ADDR_LSB  			: integer := (AXI_DATA_WIDTH/32)+ 1;
+    constant ADDR_LSB  : integer := (AXI_DATA_WIDTH/32)+ 1;
     
     --------------- SIGNAUX AXI 4 LIGHT -------------------
     
     --signal for the AXI slave
     --intern signal for output
-    signal axi_awready_s       	: std_logic;
-    signal axi_arready_s       	: std_logic;
+    signal axi_awready_s       : std_logic;
+    signal axi_arready_s       : std_logic;
 
-    signal axi_wready_s       	: std_logic;
-    signal axi_rready_s       	: std_logic;
+    signal axi_wready_s       : std_logic;
+    signal axi_rready_s       : std_logic;
     
-    signal axi_rvalid_s       	: std_logic;
-    signal axi_rresp_s        	: std_logic_vector(1 downto 0);
-    signal axi_rdata_mem_s    	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+    signal axi_rvalid_s       : std_logic;
+    signal axi_rresp_s        : std_logic_vector(1 downto 0);
+    signal axi_rdata_mem_s    : std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
     
     -- write enable 
-    signal axi_data_wren_s      : std_logic;
+    signal axi_data_wren_s       : std_logic;
     
      --intern signal for the axi interface
-    signal axi_waddr_mem_s     	: std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
-    signal axi_araddr_mem_s    	: std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
+    signal axi_waddr_mem_s     : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
+    signal axi_araddr_mem_s    : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
     
-    signal axi_wdata_mem_s     	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-    signal axi_wstrb_mem_s     	: std_logic_vector((AXI_DATA_WIDTH/8)-1 downto 0); 
+    signal axi_wdata_mem_s     : std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
+    signal axi_wstrb_mem_s     : std_logic_vector((AXI_DATA_WIDTH/8)-1 downto 0); 
     -- signal axi_araddr_mem_s    : std_logic_vector(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
     
-    signal axi_bresp_s     		: std_logic_vector(1 downto 0);
-    signal axi_bvalid_s    		: std_logic;
+    signal axi_bresp_s     : std_logic_vector(1 downto 0);
+    signal axi_bvalid_s    : std_logic;
     
     
     --------------- SIGNAUX ENTREES / SORTIES ---------------
     
-    constant registre_cst_mem 	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"deedbeef";
-    signal registre_test_mem 	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"12345678";
+    constant registre_cst_mem : std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"deedbeef";
+    signal registre_test_mem : std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"12345678";
     
     -- signal for registre input (switch / key)
-    signal registre_switch_mem 	: std_logic_vector(9 downto 0) := (others => 'X');
-    signal registre_key_mem 	: std_logic_vector(3 downto 0) := (others => 'X');
+    signal registre_switch_mem : std_logic_vector(9 downto 0) := (others => 'X');
+    signal registre_key_mem : std_logic_vector(3 downto 0) := (others => 'X');
     
     -- signal for registre leds 
-    signal registre_led_mem 	: std_logic_vector(9 downto 0) := (others => 'X');
+    signal registre_led_mem : std_logic_vector(9 downto 0) := (others => 'X');
     
     -- signal for registre 7 seg
-    signal registre_hex0_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex1_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex2_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex3_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex4_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex5_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-	
-	--------------- SIGNAUX GESTION IRQ ---------------
-	signal irq_s   				: std_logic;
-	signal irq_source			: std_logic_vector(3 downto 0) := (others => '0');
-	signal key_val_save		 	: std_logic_vector(3 downto 0) := (others => '1');
-	-- par défaut, toutes les irq actives
-	signal key_irq_mask		 	: std_logic_vector(3 downto 0) := (others => '0');
+    signal registre_hex0_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex1_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex2_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex3_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex4_mem : std_logic_vector(6 downto 0) := (others => 'X');
+    signal registre_hex5_mem : std_logic_vector(6 downto 0) := (others => 'X');
     
 begin
 
@@ -153,10 +142,6 @@ begin
    
     registre_switch_mem <= switch_i(9 downto 0);
     registre_key_mem    <= key_i(3 downto 0);
-	
-
-	
-	
     
 -----------------------------------------------------------
 -- Write address channel
@@ -252,11 +237,7 @@ begin
                         
                     -- offset 64 : leds 
                     when 64   => 
-                        registre_led_mem <= axi_wdata_mem_s(9 downto 0); 
-						
-					-- offset 130 : mask irq key 
-                    when 130   => 
-                        key_irq_mask <= axi_wdata_mem_s(3 downto 0); 
+                        registre_led_mem <= axi_wdata_mem_s(9 downto 0);
                         
                     -- offset 256 - 276 : afficheur 7 seg
                     when 256   => 
@@ -349,28 +330,8 @@ begin
             axi_rvalid_s    <= '0';
             axi_rdata_mem_s <= (others => '0');
             axi_rresp_s    <= "00";
-			
-			irq_source <= "0000";
-			irq_s <= '0';
 
         elsif rising_edge(axi_clk_i) then
-			-- Gestion des interruptions
-			if (key_val_save(0) /= registre_key_mem(0) and registre_key_mem(0) = '0' and key_irq_mask(0) = '0') then 
-                irq_source(0) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(1) /= registre_key_mem(1) and registre_key_mem(1) = '0' and key_irq_mask(1) = '0') then 
-                irq_source(1) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(2) /= registre_key_mem(2) and registre_key_mem(2) = '0' and key_irq_mask(2) = '0') then 
-                irq_source(2) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(3) /= registre_key_mem(3) and registre_key_mem(3) = '0' and key_irq_mask(3) = '0') then 
-                irq_source(3) <= '1';
-				irq_s <= '1';
-            end if;
-			-- Met à jour l'ancienne valeur des keys
-			key_val_save <= registre_key_mem;
-		
             if (axi_arready_s = '1' and axi_rvalid_s = '0')  then 
                 -- slave is ready to accept write data when
                 -- there is a valid write data
@@ -393,15 +354,6 @@ begin
                      -- Lecture des keys
                     when 128   =>
                         axi_rdata_mem_s(3 downto 0) <= registre_key_mem;
-					-- lecture de la source d'interruption et acquitement
-					when 129   =>
-                        axi_rdata_mem_s(3 downto 0) <= irq_source;
-						irq_s <= '0';
-						irq_source <= "0000";
-						
-					-- lecture des masque des irq
-					when 130   =>
-                        axi_rdata_mem_s(3 downto 0) <= key_irq_mask;
                     -- Lecture des switches
                     when 192   =>
                         axi_rdata_mem_s(9 downto 0) <= registre_switch_mem;
@@ -435,8 +387,6 @@ begin
             end if;
         end if;
     end process;
-	
-	irq_o <= irq_s;
 
     -- Mise à jour de la validité de lecture
     axi_rvalid_o <= axi_rvalid_s;
