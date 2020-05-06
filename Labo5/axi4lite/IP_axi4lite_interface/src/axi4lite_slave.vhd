@@ -150,23 +150,24 @@ begin
 
 	 -- mise à jour des entrées
     reset_s  <= axi_reset_i;
-   
+
     registre_switch_mem <= switch_i(9 downto 0);
     registre_key_mem    <= key_i(3 downto 0);
 	
 
-	
-	
     
 -----------------------------------------------------------
 -- Write address channel
 
     process (reset_s, axi_clk_i)
     begin
+		-- En cas de reset
         if reset_s = '1' then
+			-- Valeur par défaut
             axi_awready_s <= '0';
             axi_waddr_mem_s <= (others => '0');
         elsif rising_edge(axi_clk_i) then
+			-- Si une adresse d'écriture est valide
             if (axi_awready_s = '0' and axi_awvalid_i = '1')  then --and axi_wvalid_i = '1') then  modif EMI 10juil2018
                 -- slave is ready to accept write address when
                 -- there is a valid write address
@@ -188,22 +189,39 @@ begin
     -- Implement axi_wready generation
     process (reset_s, axi_clk_i)
     begin
-        
-        
+		-- En cas de reset
         if reset_s = '1' then
-            --axi_waddr_done_s <= '0'; 
+			-- Valeur par défaut
             axi_wready_s    <= '0';
             axi_wdata_mem_s <= (others => '0');
             axi_wstrb_mem_s <= (others => '0');
         elsif rising_edge(axi_clk_i) then
+			-- Si les données d'écriture est valide
             if (axi_wready_s = '0' and axi_wvalid_i = '1')  then 
                 -- slave is ready to accept write data when
                 -- there is a valid write data
                 axi_wready_s <= '1';
-                -- Write Data memorizing
-                axi_wdata_mem_s <= axi_wdata_i(AXI_DATA_WIDTH-1 downto 0);
-                axi_wstrb_mem_s <= axi_wstrb_i((AXI_DATA_WIDTH/8)-1 downto 0); 
-                -- Read axi_wstrb_i
+				
+				-- Read axi_wstrb_i
+                axi_wstrb_mem_s <= axi_wstrb_i((AXI_DATA_WIDTH/8)-1 downto 0);
+				
+				
+				-- Mémorisation des données à écrire en fonction du paramètre strobe
+				axi_wdata_mem_s <= (others => '0');	
+				
+				if (axi_wstrb_i(0) = '1') then 
+					axi_wdata_mem_s(7 downto 0) <= axi_wdata_i(7 downto 0);	
+				end if;
+				if (axi_wstrb_i(1) = '1') then 
+					axi_wdata_mem_s(15 downto 8) <= axi_wdata_i(15 downto 8);	
+				end if;
+				if (axi_wstrb_i(2) = '1') then 
+					axi_wdata_mem_s(23 downto 16) <= axi_wdata_i(23 downto 16);	
+				end if;
+				if (axi_wstrb_i(3) = '1') then 
+					axi_wdata_mem_s(31 downto 24) <= axi_wdata_i(31 downto 24);	
+				end if;
+
             else
                 axi_wready_s <= '0';
                 axi_wdata_mem_s <= (others => '0');
@@ -213,10 +231,11 @@ begin
         end if;
     end process;
     
+	-- Met à jour la sortie
     axi_wready_o <= axi_wready_s;
 
 
-    --condition to write data
+    -- condition to write data : si on est prêt à écrire
     axi_data_wren_s <= '1' when axi_wready_s = '1' else 
                         '0';
     
@@ -226,7 +245,6 @@ begin
         variable int_waddr_v : natural;
     begin
         if reset_s = '1' then
-            
             -- Valeur par défaut : RESET 
             registre_test_mem <= x"12345678";
             registre_led_mem  <= "0101010101";
@@ -236,13 +254,14 @@ begin
             registre_hex3_mem <= "0110000";
             registre_hex4_mem <= "0011001";
             registre_hex5_mem <= "0010010";
-            
+			
+			key_irq_mask 	  <= "0000";
             
         elsif rising_edge(axi_clk_i) then
-
+			-- Si une écriture est active
             if axi_data_wren_s = '1' then
+				-- convertie l'adresse d'écriture en integer
                 int_waddr_v   := to_integer(unsigned(axi_waddr_mem_s));
-                --axi_bresp_o <= "00";
                 case int_waddr_v is
                     -- offset 0 : constante 
                     when 0   => 
@@ -285,13 +304,13 @@ begin
 
     process (reset_s, axi_clk_i)
     begin
-        
-        
+        -- En cas de reset
         if reset_s = '1' then
-            --axi_waddr_done_s <= '0'; 
+            -- Valeur par défaut
             axi_bresp_s    <= "00";
             axi_bvalid_s   <= '0';
         elsif rising_edge(axi_clk_i) then
+			-- Si le master est pret à lire la réponse
             if (axi_bvalid_s = '0' and axi_bready_i = '1')  then 
                 -- slave is ready to accept write data when
                 -- there is a valid write data
@@ -302,11 +321,10 @@ begin
                 axi_bvalid_s <= '0';
                 axi_bresp_s    <= "--";
             
-            
             end if;
         end if;
     end process;
-    
+    -- Met à jours les sorties
     axi_bresp_o <= axi_bresp_s;
     axi_bvalid_o <= axi_bvalid_s;
 
@@ -317,10 +335,13 @@ begin
 
     process (reset_s, axi_clk_i)
     begin
+		-- en cas de reset
         if reset_s = '1' then
+			-- valeur par défaut
            axi_arready_s    <= '0';
            axi_araddr_mem_s <= (others => '1');
         elsif rising_edge(axi_clk_i) then
+			-- Si une adresse de lecture est valide
             if axi_arready_s = '0' and axi_arvalid_i = '1' then
                 -- indicates that the slave has acceped the valid read address
                 axi_arready_s    <= '1';
@@ -328,10 +349,10 @@ begin
                 axi_araddr_mem_s <= axi_araddr_i(AXI_ADDR_WIDTH-1 downto ADDR_LSB);
             else
                 axi_arready_s    <= '0';
-                --axi_araddr_mem_s <= (others => '0');
             end if;
         end if;
     end process;
+	-- Met à jour la sortie 
     axi_arready_o <= axi_arready_s;
 
 -----------------------------------------------------------
@@ -343,9 +364,9 @@ begin
         variable int_raddr_v : natural;
     begin
         
-        
+        -- En cas de reset
         if reset_s = '1' then
-            --axi_waddr_done_s <= '0'; 
+            -- valeur par défaut
             axi_rvalid_s    <= '0';
             axi_rdata_mem_s <= (others => '0');
             axi_rresp_s    <= "00";
@@ -371,15 +392,21 @@ begin
 			-- Met à jour l'ancienne valeur des keys
 			key_val_save <= registre_key_mem;
 		
+			-- Si une lecture est faite
             if (axi_arready_s = '1' and axi_rvalid_s = '0')  then 
+			
+				-- Pré-charge une lecture à 0
+				axi_rdata_mem_s <= (others => '0');
+			
                 -- slave is ready to accept write data when
                 -- there is a valid write data
                 axi_rvalid_s <= '1';
+				
                 -- read Data go
-                
                 int_raddr_v   := to_integer(unsigned(axi_araddr_mem_s));
                 axi_rresp_s    <= "00";
-                --axi_bresp_o <= "00";
+		
+				-- En fonction de l'adresse qu'on souhaite lire
                 case int_raddr_v is
                     -- Lecture de la constante 
                     when 0   =>  
@@ -425,17 +452,15 @@ begin
                         axi_rresp_s    <= "00";
                 end case;
                 
-
-                -- Read axi_wstrb_i
             else
                 axi_rvalid_s <= '0';
-                --axi_rdata_mem_s <= (others => '0');
                 axi_rresp_s    <= "--";
             
             end if;
         end if;
     end process;
 	
+	-- Mise à jour de la ligne l'interruption
 	irq_o <= irq_s;
 
     -- Mise à jour de la validité de lecture

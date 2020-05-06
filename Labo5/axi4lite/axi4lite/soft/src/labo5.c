@@ -93,8 +93,8 @@ int main(void){
 
 	unsigned int cst = AXI_REG_CONST;
 	
-	// Masque le bouton key3
-	AXI_INT_MASK = KEY3;
+	// Masque le bouton key3 (pour tester le masquage des interruptions)
+	// AXI_INT_MASK = KEY3;
 	
 	disable_A9_interrupts();   // disable interrupts in the A9 processor
 	set_A9_IRQ_stack();        // initialize the stack pointer for IRQ mode
@@ -171,9 +171,10 @@ int main(void){
 }
 
 /* Routine d'interruption */
-/* Remarque : Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3 */
 void pushbutton_ISR(void){
-	static int cpt_int = 0;
+	// Permet de tester le masquage
+	// static int cpt_int = 0;
+	
 	/* Lecture et acquitement des interruptions */
 	int src_irq = AXI_INT_SRC;
 	
@@ -189,11 +190,13 @@ void pushbutton_ISR(void){
 	
 	
 	// Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3
+	/*
 	if (src_irq & KEY0 || src_irq & KEY1) {
 		cpt_int++;
 		
 		if (cpt_int % 3 == 0)
 			AXI_INT_MASK = AXI_INT_MASK ^ (KEY3 | KEY2);
 	}
+	*/
 	
 }
