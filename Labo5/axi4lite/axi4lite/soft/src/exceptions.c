@@ -30,8 +30,8 @@
 #include "address_map_arm.h"
 #include "defines.h"
 
-void config_interrupt (int, int);
-void pushbutton_ISR(void);
+
+
 
 // Référence : Exemple dans Using The ARM Generic
 

@@ -221,6 +221,9 @@ begin
 				if (axi_wstrb_i(3) = '1') then 
 					axi_wdata_mem_s(31 downto 24) <= axi_wdata_i(31 downto 24);	
 				end if;
+				
+				-- Test sans la fonctionnalité strobe 
+				-- axi_wdata_mem_s <= axi_wdata_i;
 
             else
                 axi_wready_s <= '0';

@@ -1,6 +1,0 @@
-clk_i = axi_clk_i ?
-Write data pour master mais nous sommes slave ?
-axo_waddr_done ??
-Comment on fait fonctionner le TB ?
-Schéma comment représenter le switch ?
-le lien entre les I/O (Leds , siwtches, keys, 7seg) notre module AXI (les registres led_reg, key_reg,...) ?

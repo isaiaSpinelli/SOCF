@@ -16,7 +16,6 @@
  *****************************************************************************************
  * Brief: Programme for labo 5 of SOCF, for DE1-SoC board
  *
- * Remarque : Tous les 3 interruptions de KEY0 et KEY1, change le masque de key 2 et 3
  *
  *****************************************************************************************
  * Modifications :
@@ -25,54 +24,16 @@
  * 1.1	  03.05.20	  Isaia Spinelli : Ajout de la partie 2
 *****************************************************************************************/
 
-#define KEY0 0x01
-#define KEY1 0x02
-#define KEY2 0x04
-#define KEY3 0x08
-
-typedef volatile unsigned char vcint;
-typedef volatile unsigned short vsint;
-typedef volatile unsigned int vuint;
+#include "defines.h"
 
 
-#define FPGA_BASE_ADDR_IO 		0xFF200000
-#define AXI_LIGHT_BASE_ADDR 	FPGA_BASE_ADDR_IO
-
-
-#define AXI_REG_CONST_CHAR		*(vcint *)(AXI_LIGHT_BASE_ADDR + 0x0)
-#define AXI_REG_CONST_SHORT		*(vsint *)(AXI_LIGHT_BASE_ADDR + 0x0)
-#define AXI_REG_CONST			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x0)
-
-#define AXI_REG_TEST			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x4)
-
-#define AXI_LEDS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x100)
-
-#define AXI_KEYS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x200)
-// Lecture de la source d'int. + acquitement
-#define AXI_INT_SRC				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x204)
-// 1 = interruption masquée
-#define AXI_INT_MASK			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x208)
-
-#define AXI_SWITCHES			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x300)
-
-#define AXI_HEX0				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x400)
-#define AXI_HEX1				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x410)
-#define AXI_HEX2				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x420)
-#define AXI_HEX3				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x430)
-#define AXI_HEX4				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x440)
-#define AXI_HEX5				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x450)
+/* Variable globales */
 
 int irqKey2 = 0;
 int irqKey3 = 0;
 
-// Modif : lecuture du masque à 0 !!
 
 
-void disable_A9_interrupts (void);
-void set_A9_IRQ_stack (void);
-void config_GIC (void);
-void config_KEYs (void);
-void enable_A9_interrupts (void);
 
 int main(void){
 	
@@ -92,6 +53,7 @@ int main(void){
 	AXI_LEDS = AXI_SWITCHES;
 
 	unsigned int cst = AXI_REG_CONST;
+	AXI_REG_TEST = cst;
 	
 	// Masque le bouton key3 (pour tester le masquage des interruptions)
 	// AXI_INT_MASK = KEY3;
@@ -166,8 +128,13 @@ int main(void){
 			AXI_HEX1 = AXI_HEX0;
 			AXI_HEX0 = Seg_tmp;
 
+		
 		}
+		
+		AXI_HEX5 = test1;
 	}
+	AXI_HEX5 = test1;
+	
 }
 
 /* Routine d'interruption */
