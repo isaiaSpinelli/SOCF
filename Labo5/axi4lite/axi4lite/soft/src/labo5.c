@@ -22,6 +22,7 @@
  * Ver    Date        Student      Comments
  * 0.1	  01.05.20	  Isaia Spinelli : Modif pour la partie 1
  * 1.1	  03.05.20	  Isaia Spinelli : Ajout de la partie 2
+ * 1.2	  08.05.20	  Isaia Spinelli : Test du paramètre edge des irq
 *****************************************************************************************/
 
 #include "defines.h"
@@ -57,6 +58,9 @@ int main(void){
 	
 	// Masque le bouton key3 (pour tester le masquage des interruptions)
 	// AXI_INT_MASK = KEY3;
+	
+	// KEY 3 sur flanc montant
+	AXI_INT_EDGE = KEY3;
 	
 	disable_A9_interrupts();   // disable interrupts in the A9 processor
 	set_A9_IRQ_stack();        // initialize the stack pointer for IRQ mode
@@ -128,12 +132,9 @@ int main(void){
 			AXI_HEX1 = AXI_HEX0;
 			AXI_HEX0 = Seg_tmp;
 
-		
 		}
 		
-		AXI_HEX5 = test1;
 	}
-	AXI_HEX5 = test1;
 	
 }
 

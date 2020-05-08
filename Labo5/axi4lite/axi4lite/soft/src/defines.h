@@ -21,6 +21,7 @@
  * Ver    Date        Engineer      Comments
  * 0.0    16.02.2018  SMS           Initial version.
  * 1.1	  06.05.20	  Isaia Spinelli : Refactor
+ * 1.2	  08.05.20	  Isaia Spinelli : Ajout du paramètre edge des irq
 *****************************************************************************************/
 
 #include "exceptions.h"
@@ -73,8 +74,11 @@ typedef volatile unsigned int vuint;
 #define AXI_KEYS				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x200)
 // Lecture de la source d'int. + acquitement
 #define AXI_INT_SRC				*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x204)
-// 1 = interruption masquée
+// 0 = interruption non masquée (défaut)
 #define AXI_INT_MASK			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x208)
+// 0 = interruption flanc descendant (défaut)
+#define AXI_INT_EDGE			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x20C)
+
 
 #define AXI_SWITCHES			*(vuint *)(AXI_LIGHT_BASE_ADDR + 0x300)
 

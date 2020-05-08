@@ -8,8 +8,9 @@
 -- used for     : SOCF lab
 --| Modifications |-----------------------------------------------------------
 -- Ver  Date       Auteur  Description
--- 1.0  26.03.2019  EMI    Adaptation du chablon pour les etudiants  
--- 1.1  03.04.2020  ISS    Complète le chablon pour le laboratoire 5
+-- 1.0  26.04.2019  EMI    Adaptation du chablon pour les etudiants  
+-- 1.1  03.05.2020  ISS    Complète le chablon pour le laboratoire 5 Partie 2
+-- 1.2  08.05.2020  ISS    Ajout de la fonctionnalité edge pour les irq
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -145,6 +146,8 @@ architecture rtl of axi4lite_slave is
 	signal key_val_save		 	: std_logic_vector(3 downto 0) := (others => '1');
 	-- par défaut, toutes les irq actives
 	signal key_irq_mask		 	: std_logic_vector(3 downto 0) := (others => '0');
+	-- par défaut, toutes les irq sur flanc descendant
+	signal key_irq_edge		 	: std_logic_vector(3 downto 0) := (others => '0');
     
 begin
 
@@ -259,6 +262,7 @@ begin
             registre_hex5_mem <= "0010010";
 			
 			key_irq_mask 	  <= "0000";
+			key_irq_edge 	  <= "0000";
             
         elsif rising_edge(axi_clk_i) then
 			-- Si une écriture est active
@@ -278,7 +282,10 @@ begin
 						
 					-- offset 130 : mask irq key 
                     when 130   => 
-                        key_irq_mask <= axi_wdata_mem_s(3 downto 0); 
+                        key_irq_mask <= axi_wdata_mem_s(3 downto 0);  
+					-- offset 130 : mask irq key 
+                    when 131   => 
+                        key_irq_edge <= axi_wdata_mem_s(3 downto 0);  
                         
                     -- offset 256 - 276 : afficheur 7 seg
                     when 256   => 
@@ -379,16 +386,16 @@ begin
 
         elsif rising_edge(axi_clk_i) then
 			-- Gestion des interruptions
-			if (key_val_save(0) /= registre_key_mem(0) and registre_key_mem(0) = '0' and key_irq_mask(0) = '0') then 
+			if (key_val_save(0) /= registre_key_mem(0) and registre_key_mem(0) = key_irq_edge(0) and key_irq_mask(0) = '0') then 
                 irq_source(0) <= '1';
 				irq_s <= '1';
-			elsif (key_val_save(1) /= registre_key_mem(1) and registre_key_mem(1) = '0' and key_irq_mask(1) = '0') then 
+			elsif (key_val_save(1) /= registre_key_mem(1) and registre_key_mem(1) = key_irq_edge(1) and key_irq_mask(1) = '0') then 
                 irq_source(1) <= '1';
 				irq_s <= '1';
-			elsif (key_val_save(2) /= registre_key_mem(2) and registre_key_mem(2) = '0' and key_irq_mask(2) = '0') then 
+			elsif (key_val_save(2) /= registre_key_mem(2) and registre_key_mem(2) = key_irq_edge(2) and key_irq_mask(2) = '0') then 
                 irq_source(2) <= '1';
 				irq_s <= '1';
-			elsif (key_val_save(3) /= registre_key_mem(3) and registre_key_mem(3) = '0' and key_irq_mask(3) = '0') then 
+			elsif (key_val_save(3) /= registre_key_mem(3) and registre_key_mem(3) = key_irq_edge(3) and key_irq_mask(3) = '0') then 
                 irq_source(3) <= '1';
 				irq_s <= '1';
             end if;
@@ -431,7 +438,11 @@ begin
 						
 					-- lecture des masque des irq
 					when 130   =>
-                        axi_rdata_mem_s(3 downto 0) <= key_irq_mask;
+                        axi_rdata_mem_s(3 downto 0) <= key_irq_mask; 
+					-- lecture des masque des irq
+					when 131   =>
+                        axi_rdata_mem_s(3 downto 0) <= key_irq_edge; 
+						
                     -- Lecture des switches
                     when 192   =>
                         axi_rdata_mem_s(9 downto 0) <= registre_switch_mem;
