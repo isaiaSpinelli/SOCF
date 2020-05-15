@@ -36,7 +36,7 @@ En ajoutant l'interruption dans le PIO des KEYs et le HPS (FPGA_to_HPS) à l'aid
 
 Le numéro d'interruption est le 72.
 
-Pour ce que est du code, il a fallu désactiver/activer les interruptions via le registre cpsr, initialiser le mode IRQ, configurer le GIC et activer les interruptions des KEYs.
+Pour a partie code, il a fallu désactiver/activer les interruptions via le registre cpsr, initialiser le mode IRQ, configurer le GIC et activer les interruptions des KEYs.
 Je me suis insipré de la doc fourni : Using Linux on the DE1-SoC. A voir le code dans /Projet/soft/src/, le code est bien commenté.
 
 
