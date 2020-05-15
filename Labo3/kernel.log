@@ -1,0 +1,190 @@
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.7.0-rc5-00055-g1ae7efb38854 (redsuser@reds-eda) (gcc version 4.7.3 20130328 (prerelease) (crosstool-NG linaro-1.13.1-4.7-2013.04-20130415 - Linaro GCC 2013.04), GNU ld (crosstool-NG linaro-1.13.1-4.7-2013.04-20130415 - Linaro GCC 2013.04) 2.23.1) #1 SMP Fri May 15 14:11:07 CEST 2020
+[    0.000000] CPU: ARMv7 Processor [413fc090] revision 0 (ARMv7), cr=10c5387d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] OF: fdt: Machine model: Terasic DE-0(Atlas)
+[    0.000000] Memory policy: Data cache writealloc
+[    0.000000] On node 0 totalpages: 262144
+[    0.000000]   Normal zone: 1536 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 196608 pages, LIFO batch:63
+[    0.000000]   HighMem zone: 65536 pages, LIFO batch:15
+[    0.000000] percpu: Embedded 18 pages/cpu s44928 r8192 d20608 u73728
+[    0.000000] pcpu-alloc: s44928 r8192 d20608 u73728 alloc=18*4096
+[    0.000000] pcpu-alloc: [0] 0 [0] 1 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 260608
+[    0.000000] Kernel command line: console=ttyS0,115200 root=/dev/mmcblk0p2 rw rootwait
+[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
+[    0.000000] Memory: 1027296K/1048576K available (8192K kernel code, 638K rwdata, 1768K rodata, 1024K init, 140K bss, 21280K reserved, 0K cma-reserved, 262144K highmem)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] ftrace: allocating 27984 entries in 55 pages
+[    0.000000] ftrace: allocated 55 pages with 5 groups
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU event tracing is enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] L2C: DT/platform modifies aux control register: 0x02060000 -> 0x02460000
+[    0.000000] L2C-310 erratum 769419 enabled
+[    0.000000] L2C-310 enabling early BRESP for Cortex-A9
+[    0.000000] L2C-310 full line of zeros enabled for Cortex-A9
+[    0.000000] L2C-310 ID prefetch enabled, offset 8 lines
+[    0.000000] L2C-310 dynamic clock gating enabled, standby mode enabled
+[    0.000000] L2C-310 cache controller enabled, 8 ways, 512 kB
+[    0.000000] L2C-310: CACHE_ID 0x410030c9, AUX_CTRL 0x76460001
+[    0.000000] random: get_random_bytes called from start_kernel+0x428/0x630 with crng_init=0
+[    0.000000] clocksource: timer1: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.000006] sched_clock: 32 bits at 100MHz, resolution 10ns, wraps every 21474836475ns
+[    0.000018] Switching to timer-based delay loop, resolution 10ns
+[    0.000198] Console: colour dummy device 80x30
+[    0.000236] Calibrating delay loop (skipped), value calculated using timer frequency.. 200.00 BogoMIPS (lpj=1000000)
+[    0.000251] pid_max: default: 32768 minimum: 301
+[    0.000387] Mount-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.000402] Mountpoint-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.001099] CPU: Testing write buffer coherency: ok
+[    0.001133] CPU0: Spectre v2: using BPIALL workaround
+[    0.001325] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.001960] Setting up static identity map for 0x100000 - 0x100060
+[    0.002101] rcu: Hierarchical SRCU implementation.
+[    0.002434] smp: Bringing up secondary CPUs ...
+[    0.003218] CPU1: thread -1, cpu 1, socket 0, mpidr 80000001
+[    0.003227] CPU1: Spectre v2: using BPIALL workaround
+[    0.003361] smp: Brought up 1 node, 2 CPUs
+[    0.003372] SMP: Total of 2 processors activated (400.00 BogoMIPS).
+[    0.003380] CPU: All CPU(s) started in SVC mode.
+[    0.003934] devtmpfs: initialized
+[    0.008193] VFP support v0.3: implementor 41 architecture 3 part 30 variant 9 rev 4
+[    0.008432] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.008454] futex hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.009339] NET: Registered protocol family 16
+[    0.010249] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.011211] hw-breakpoint: found 5 (+1 reserved) breakpoint and 1 watchpoint registers.
+[    0.011221] hw-breakpoint: maximum watchpoint size is 4 bytes.
+[    0.026365] vgaarb: loaded
+[    0.026644] SCSI subsystem initialized
+[    0.026847] usbcore: registered new interface driver usbfs
+[    0.026897] usbcore: registered new interface driver hub
+[    0.026958] usbcore: registered new device driver usb
+[    0.027126] usb_phy_generic soc:usbphy: supply vcc not found, using dummy regulator
+[    0.027448] pps_core: LinuxPPS API ver. 1 registered
+[    0.027457] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.027485] PTP clock support registered
+[    0.027654] FPGA manager framework
+[    0.028482] clocksource: Switched to clocksource timer1
+[    0.621904] NET: Registered protocol family 2
+[    0.622570] tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 6144 bytes, linear)
+[    0.622601] TCP established hash table entries: 8192 (order: 3, 32768 bytes, linear)
+[    0.622688] TCP bind hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    0.622830] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.622943] UDP hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    0.622986] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    0.623167] NET: Registered protocol family 1
+[    0.623678] RPC: Registered named UNIX socket transport module.
+[    0.623690] RPC: Registered udp transport module.
+[    0.623696] RPC: Registered tcp transport module.
+[    0.623703] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    0.623718] PCI: CLS 0 bytes, default 64
+[    0.624352] hw perfevents: enabled with armv7_cortex_a9 PMU driver, 7 counters available
+[    0.625681] workingset: timestamp_bits=30 max_order=18 bucket_order=0
+[    0.633028] NFS: Registering the id_resolver key type
+[    0.633060] Key type id_resolver registered
+[    0.633068] Key type id_legacy registered
+[    0.633085] Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+[    0.633955] ntfs: driver 2.1.32 [Flags: R/W].
+[    0.634178] jffs2: version 2.2. (NAND) \xffffffc2\xffffffa9 2001-2006 Red Hat, Inc.
+[    0.634763] bounce: pool size: 64 pages
+[    0.634781] io scheduler mq-deadline registered
+[    0.634790] io scheduler kyber registered
+[    0.637982] dma-pl330 ffe01000.pdma: Loaded driver for PL330 DMAC-341330
+[    0.637999] dma-pl330 ffe01000.pdma: 	DBUFF-512x8bytes Num_Chans-8 Num_Peri-32 Num_Events-8
+[    0.641558] Serial: 8250/16550 driver, 2 ports, IRQ sharing disabled
+[    0.642611] printk: console [ttyS0] disabled
+[    0.642659] ffc02000.serial0: ttyS0 at MMIO 0xffc02000 (irq = 36, base_baud = 6250000) is a 16550A
+[    1.240748] printk: console [ttyS0] enabled
+[    1.245583] ffc03000.serial1: ttyS1 at MMIO 0xffc03000 (irq = 37, base_baud = 6250000) is a 16550A
+[    1.256073] brd: module loaded
+[    1.267223] loop: module loaded
+[    1.271679] libphy: Fixed MDIO Bus: probed
+[    1.276429] CAN device driver interface
+[    1.280574] socfpga-dwmac ff702000.ethernet: IRQ eth_wake_irq not found
+[    1.287166] socfpga-dwmac ff702000.ethernet: IRQ eth_lpi not found
+[    1.293467] socfpga-dwmac ff702000.ethernet: PTP uses main clock
+[    1.299687] socfpga-dwmac ff702000.ethernet: Version ID not available
+[    1.306109] socfpga-dwmac ff702000.ethernet: 	DWMAC1000
+[    1.311348] socfpga-dwmac ff702000.ethernet: DMA HW capability register supported
+[    1.318817] socfpga-dwmac ff702000.ethernet: RX Checksum Offload Engine supported
+[    1.326268] socfpga-dwmac ff702000.ethernet: COE Type 2
+[    1.331486] socfpga-dwmac ff702000.ethernet: TX Checksum insertion supported
+[    1.338517] socfpga-dwmac ff702000.ethernet: Enhanced/Alternate descriptors
+[    1.345449] socfpga-dwmac ff702000.ethernet: Extended descriptors not supported
+[    1.352738] socfpga-dwmac ff702000.ethernet: Ring mode enabled
+[    1.358567] socfpga-dwmac ff702000.ethernet: device MAC address 26:6a:60:7e:22:a2
+[    1.374237] libphy: stmmac: probed
+[    1.377643] Micrel KSZ9021 Gigabit PHY stmmac-0:01: attached PHY driver [Micrel KSZ9021 Gigabit PHY] (mii_bus:phy_addr=stmmac-0:01, irq=POLL)
+[    1.391517] dwc2 ffb40000.usb: supply vusb_d not found, using dummy regulator
+[    1.398745] dwc2 ffb40000.usb: supply vusb_a not found, using dummy regulator
+[    1.406106] dwc2 ffb40000.usb: EPs: 16, dedicated fifos, 8064 entries in SPRAM
+[    1.413806] dwc2 ffb40000.usb: DWC OTG Controller
+[    1.418545] dwc2 ffb40000.usb: new USB bus registered, assigned bus number 1
+[    1.425596] dwc2 ffb40000.usb: irq 38, io mem 0xffb40000
+[    1.431711] hub 1-0:1.0: USB hub found
+[    1.435491] hub 1-0:1.0: 1 port detected
+[    1.440247] usbcore: registered new interface driver usb-storage
+[    1.446468] i2c /dev entries driver
+[    1.450802] Synopsys Designware Multimedia Card Interface Driver
+[    1.457229] dw_mmc ff704000.dwmmc0: IDMAC supports 32-bit address mode.
+[    1.463884] dw_mmc ff704000.dwmmc0: Using internal DMA controller.
+[    1.470072] dw_mmc ff704000.dwmmc0: Version ID is 240a
+[    1.475237] dw_mmc ff704000.dwmmc0: DW MMC controller at irq 31,32 bit host data width,1024 deep fifo
+[    1.484641] mmc_host mmc0: card is polling.
+[    1.501497] mmc_host mmc0: Bus speed (slot 0) = 12500000Hz (slot req 400000Hz, actual 390625HZ div = 16)
+[    1.523910] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.530088] usbcore: registered new interface driver usbhid
+[    1.535649] usbhid: USB HID core driver
+[    1.539792] fpga_manager fpga0: Altera SOCFPGA FPGA Manager registered
+[    1.546839] altera_hps2fpga_bridge ff200000.fpga_bridge: fpga bridge [lwhps2fpga] registered
+[    1.555545] altera_hps2fpga_bridge ff500000.fpga_bridge: fpga bridge [hps2fpga] registered
+[    1.564250] oprofile: using arm/armv7-ca9
+[    1.569063] NET: Registered protocol family 10
+[    1.574440] Segment Routing with IPv6
+[    1.578203] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    1.584750] NET: Registered protocol family 17
+[    1.589236] NET: Registered protocol family 15
+[    1.593662] can: controller area network core (rev 20170425 abi 9)
+[    1.599914] NET: Registered protocol family 29
+[    1.604345] can: raw protocol (rev 20170425)
+[    1.608617] can: broadcast manager protocol (rev 20170425 t)
+[    1.614258] can: netlink gateway (rev 20190810) max_hops=1
+[    1.619917] 8021q: 802.1Q VLAN Support v1.8
+[    1.624127] Key type dns_resolver registered
+[    1.628496] ThumbEE CPU extension supported.
+[    1.632756] Registering SWP/SWPB emulation handler
+[    1.642237] dw-apb-uart ffc02000.serial0: forbid DMA for kernel console
+[    1.649143] Waiting for root device /dev/mmcblk0p2...
+[    1.687145] mmc_host mmc0: Bus speed (slot 0) = 12500000Hz (slot req 50000000Hz, actual 12500000HZ div = 0)
+[    1.696959] mmc0: new high speed SDHC card at address 59b4
+[    1.703047] mmcblk0: mmc0:59b4 USDU1 14.9 GiB 
+[    1.710130]  mmcblk0: p1 p2 p3
+[    1.739412] EXT4-fs (mmcblk0p2): mounting ext3 file system using the ext4 subsystem
+[    1.828820] random: fast init done
+[    1.869756] EXT4-fs (mmcblk0p2): recovery complete
+[    1.883042] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
+[    1.891174] VFS: Mounted root (ext3 filesystem) on device 179:2.
+[    1.922138] devtmpfs: mounted
+[    1.927495] Freeing unused kernel memory: 1024K
+[    1.932327] Run /sbin/init as init process
+[    1.936406]   with arguments:
+[    1.936410]     /sbin/init
+[    1.936413]   with environment:
+[    1.936416]     HOME=/
+[    1.936419]     TERM=linux
+[    1.968526] usb 1-1: new high-speed USB device number 2 using dwc2
+[    2.219554] hub 1-1:1.0: USB hub found
+[    2.223366] hub 1-1:1.0: 2 ports detected
+[    2.797711] EXT4-fs (mmcblk0p2): re-mounted. Opts: (null)
+[    3.170651] socfpga-dwmac ff702000.ethernet eth0: PHY [stmmac-0:01] driver [Micrel KSZ9021 Gigabit PHY] (irq=POLL)
+[    3.181894] socfpga-dwmac ff702000.ethernet eth0: No Safety Features support found
+[    3.189706] socfpga-dwmac ff702000.ethernet eth0: registered PTP clock
+[    3.196219] socfpga-dwmac ff702000.ethernet eth0: configuring for phy/rgmii link mode
+[    3.760330] random: crng init done
