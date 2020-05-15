@@ -1,0 +1,7 @@
+*./comp*
+comp/*
+./comp/*
+/comp/*
+./comp*
+/comp*
+*.q*

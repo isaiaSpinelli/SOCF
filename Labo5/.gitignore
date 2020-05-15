@@ -1,0 +1,7 @@
+**/comp
+**/work
+*.objdump
+*.o
+.amp
+*.amp
+*.qdb

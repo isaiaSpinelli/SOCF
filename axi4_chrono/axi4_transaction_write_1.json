@@ -1,0 +1,18 @@
+{signal: [
+  {name: 'axi_clk',   wave: 'p........'},
+  {name: 'Write address', },
+  {name: 'axi_awaddr',  wave: 'x=..x....', data: ["valide"]},
+  {name: 'axi_awvalid', wave: '01..0....'},
+  {name: 'axi_awready', wave: '0..10....'},
+  {name: 'Write data', },
+  {name: 'axi_wdata',  wave: 'x.=..x..', data: ["valide"]},
+  {name: 'axi_wvalid', wave: '0.1..0..'},
+  {name: 'axi_wready', wave: '0...10..'},
+  {name: 'axi_wresp',  wave: 'x.=..x..', data: ["00"]}, 
+  {name: 'Write response', },
+  {name: 'axi_bvalid', wave: '0....10..'},
+  {name: 'axi_bready', wave: '1.....0..'},
+  {name: 'axi_bresp',  wave: 'x....=x..', data: ["00"]},  
+  {                                node: '....a.b '}
+ ],
+}
