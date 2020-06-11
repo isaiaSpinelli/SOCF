@@ -11,6 +11,7 @@
 -- 1.0  26.04.2019  EMI    Adaptation du chablon pour les etudiants  
 -- 1.1  03.05.2020  ISS    Complète le chablon pour le laboratoire 5 Partie 2
 -- 1.2  08.05.2020  ISS    Ajout de la fonctionnalité edge pour les irq
+-- 1.2  05.06.2020  ISS    Ajout de la fonctionnalité pour le MD5 Core
 ------------------------------------------------------------------------------
 
 library ieee;
@@ -60,28 +61,27 @@ entity axi4lite_slave is
         axi_rdata_o     : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
         axi_rresp_o     : out std_logic_vector(1 downto 0);
         axi_rvalid_o    : out std_logic;
-        axi_rready_i    : in  std_logic;
+        axi_rready_i    : in  std_logic
 
         -- User input-output
-        switch_i        : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        key_i           : in  std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        
-        leds_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        
-        hex0_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex1_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex2_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex3_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex4_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-        hex5_o          : out std_logic_vector(AXI_DATA_WIDTH-1 downto 0);
-		
-		
-		-- Interruption
-		irq_o 			: out std_logic
     );
 end entity axi4lite_slave;
 
 architecture rtl of axi4lite_slave is
+
+	-- component declaration
+    component Md5Core is
+    port( 
+        clk_i       : in  std_logic;
+        rst_i       : in  std_logic;
+        en_i        : in  std_logic;
+        valid_i     : in  std_logic;
+        wb_i        : in  std_logic_vector (511 downto 0);
+        init_val_i  : in  std_logic_vector (127 downto 0);
+        valid_o     : out std_logic;
+        footprint_o : out std_logic_vector (127 downto 0)
+    );
+    end component;
 
     signal reset_s : std_logic;
 
@@ -121,41 +121,44 @@ architecture rtl of axi4lite_slave is
     
     
     --------------- SIGNAUX ENTREES / SORTIES ---------------
-    
-    constant registre_cst_mem 	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"deedbeef";
-    signal registre_test_mem 	: std_logic_vector(AXI_DATA_WIDTH-1 downto 0):= x"12345678";
-    
-    -- signal for registre input (switch / key)
-    signal registre_switch_mem 	: std_logic_vector(9 downto 0) := (others => 'X');
-    signal registre_key_mem 	: std_logic_vector(3 downto 0) := (others => 'X');
-    
-    -- signal for registre leds 
-    signal registre_led_mem 	: std_logic_vector(9 downto 0) := (others => 'X');
-    
-    -- signal for registre 7 seg
-    signal registre_hex0_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex1_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex2_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex3_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex4_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
-    signal registre_hex5_mem 	: std_logic_vector(6 downto 0) := (others => 'X');
 	
-	--------------- SIGNAUX GESTION IRQ ---------------
-	signal irq_s   				: std_logic;
-	signal irq_source			: std_logic_vector(3 downto 0) := (others => '0');
-	signal key_val_save		 	: std_logic_vector(3 downto 0) := (others => '1');
-	-- par défaut, toutes les irq actives
-	signal key_irq_mask		 	: std_logic_vector(3 downto 0) := (others => '0');
-	-- par défaut, toutes les irq sur flanc descendant
-	signal key_irq_edge		 	: std_logic_vector(3 downto 0) := (others => '0');
-    
+	--------------- SIGNAUX CONTROLES  ---------------
+	signal busy_s    			: std_logic :='0';
+
+	--------------- SIGNAUX MD5 ------------------------
+	signal enable_s    			: std_logic :='0';
+    signal valid_i_s     		: std_logic :='0';
+	signal wb_s        			: std_logic_vector(511 downto 0);
+	
+	signal init_val_s 			: std_logic_vector(127 downto 0):= x"67452301EFCDAB8998BADCFE10325476";
+	
+	signal valid_o_s     		: std_logic;
+    signal footprint_s 			: std_logic_vector(127 downto 0) := (others => '0');
+	signal footprint_mem_s 		: std_logic_vector(127 downto 0) := (others => '0');
+	
+	
+	    
 begin
 
+	------------------------------
+    -- Components instanciation --
+    ------------------------------
+    uut : Md5Core
+        port map(clk_i       => axi_clk_i,
+                 rst_i       => axi_reset_i,
+                 en_i        => enable_s,
+                 valid_i     => valid_i_s,
+                 wb_i        => wb_s,
+                 init_val_i  => init_val_s,
+                 valid_o     => valid_o_s,
+                 footprint_o => footprint_s
+        );
+		
 	 -- mise à jour des entrées
     reset_s  <= axi_reset_i;
-
-    registre_switch_mem <= switch_i(9 downto 0);
-    registre_key_mem    <= key_i(3 downto 0);
+	
+	-- Constants mis à jour
+    --registre_switch_mem <= switch_i(9 downto 0);
 	
 
     
@@ -209,24 +212,26 @@ begin
                 axi_wstrb_mem_s <= axi_wstrb_i((AXI_DATA_WIDTH/8)-1 downto 0);
 				
 				
+				-- TEST AVEC LA FONCTIONNALITEE STROBE :
+				
 				-- Mémorisation des données à écrire en fonction du paramètre strobe
-				axi_wdata_mem_s <= (others => '0');	
+				-- axi_wdata_mem_s <= (others => '0');	
 				
-				if (axi_wstrb_i(0) = '1') then 
-					axi_wdata_mem_s(7 downto 0) <= axi_wdata_i(7 downto 0);	
-				end if;
-				if (axi_wstrb_i(1) = '1') then 
-					axi_wdata_mem_s(15 downto 8) <= axi_wdata_i(15 downto 8);	
-				end if;
-				if (axi_wstrb_i(2) = '1') then 
-					axi_wdata_mem_s(23 downto 16) <= axi_wdata_i(23 downto 16);	
-				end if;
-				if (axi_wstrb_i(3) = '1') then 
-					axi_wdata_mem_s(31 downto 24) <= axi_wdata_i(31 downto 24);	
-				end if;
+				-- if (axi_wstrb_i(0) = '1') then 
+					-- axi_wdata_mem_s(7 downto 0) <= axi_wdata_i(7 downto 0);	
+				-- end if;
+				-- if (axi_wstrb_i(1) = '1') then 
+					-- axi_wdata_mem_s(15 downto 8) <= axi_wdata_i(15 downto 8);	
+				-- end if;
+				-- if (axi_wstrb_i(2) = '1') then 
+					-- axi_wdata_mem_s(23 downto 16) <= axi_wdata_i(23 downto 16);	
+				-- end if;
+				-- if (axi_wstrb_i(3) = '1') then 
+					-- axi_wdata_mem_s(31 downto 24) <= axi_wdata_i(31 downto 24);	
+				-- end if;
 				
-				-- Test sans la fonctionnalité strobe 
-				-- axi_wdata_mem_s <= axi_wdata_i;
+				-- Sans la fonctionnalité strobe 
+				axi_wdata_mem_s <= axi_wdata_i;
 
             else
                 axi_wready_s <= '0';
@@ -244,62 +249,50 @@ begin
     -- condition to write data : si on est prêt à écrire
     axi_data_wren_s <= '1' when axi_wready_s = '1' else 
                         '0';
-    
-    
+						
+						
+-----------------------------------------------------------
+    -- ECRITURE 
     process (reset_s, axi_clk_i)
         --number address to access 32 or 64 bits data
         variable int_waddr_v : natural;
     begin
         if reset_s = '1' then
             -- Valeur par défaut : RESET 
-            registre_test_mem <= x"12345678";
-            registre_led_mem  <= "0101010101";
-            registre_hex0_mem <= "1000000" ;
-            registre_hex1_mem <= "1111001"; 
-            registre_hex2_mem <= "0100100";
-            registre_hex3_mem <= "0110000";
-            registre_hex4_mem <= "0011001";
-            registre_hex5_mem <= "0010010";
-			
-			key_irq_mask 	  <= "0000";
-			key_irq_edge 	  <= "0000";
+			wb_s 		<= (others => '0');
+			enable_s	<= '0';
+			busy_s <= '0';
+			valid_i_s <= '0';
             
         elsif rising_edge(axi_clk_i) then
+			-- Si un footprint est arrivé, met à jour la valeur d'init
+			if valid_o_s = '1' then
+				footprint_mem_s <= footprint_s;
+				init_val_s <= footprint_s;
+				busy_s <= '0';
+			end if;
+			
+			-- s'assure que le signal valid_i reste actif un seul coup de clock
+			valid_i_s <= '0';
+		
 			-- Si une écriture est active
             if axi_data_wren_s = '1' then
 				-- convertie l'adresse d'écriture en integer
                 int_waddr_v   := to_integer(unsigned(axi_waddr_mem_s));
                 case int_waddr_v is
-                    -- offset 0 : constante 
-                    when 0   => 
-                    -- offset 4 : registre de test  
-                    when 1   => 
-                        registre_test_mem <= axi_wdata_mem_s;
+                    -- offset 0 - 15 : wb_s (511 - 0) 
+                    when 0 to 14   =>  wb_s ( ((int_waddr_v*32+31)) downto (int_waddr_v*32) ) <= axi_wdata_mem_s;
+                   
+				     when 15   =>  	wb_s ( 511 downto 480 ) <= axi_wdata_mem_s;
+									valid_i_s <= '1';
+									busy_s <= '1';
                         
-                    -- offset 64 : leds 
+                    -- offset 64 : Enable  
                     when 64   => 
-                        registre_led_mem <= axi_wdata_mem_s(9 downto 0); 
-						
-					-- offset 130 : mask irq key 
-                    when 130   => 
-                        key_irq_mask <= axi_wdata_mem_s(3 downto 0);  
-					-- offset 130 : mask irq key 
-                    when 131   => 
-                        key_irq_edge <= axi_wdata_mem_s(3 downto 0);  
-                        
-                    -- offset 256 - 276 : afficheur 7 seg
-                    when 256   => 
-                        registre_hex0_mem <= axi_wdata_mem_s(6 downto 0);
-                    when 260   => 
-                        registre_hex1_mem <= axi_wdata_mem_s(6 downto 0);
-                    when 264   => 
-                        registre_hex2_mem <= axi_wdata_mem_s(6 downto 0);
-                    when 268   => 
-                        registre_hex3_mem <= axi_wdata_mem_s(6 downto 0);
-                    when 272   => 
-                        registre_hex4_mem <= axi_wdata_mem_s(6 downto 0);
-                    when 276   => 
-                        registre_hex5_mem <= axi_wdata_mem_s(6 downto 0);
+						enable_s <= axi_wdata_mem_s(0);  
+						busy_s <= '0';
+						init_val_s  <= x"67452301EFCDAB8998BADCFE10325476";
+
                         
                         
                     when others => null;
@@ -381,26 +374,9 @@ begin
             axi_rdata_mem_s <= (others => '0');
             axi_rresp_s    <= "00";
 			
-			irq_source <= "0000";
-			irq_s <= '0';
 
         elsif rising_edge(axi_clk_i) then
-			-- Gestion des interruptions
-			if (key_val_save(0) /= registre_key_mem(0) and registre_key_mem(0) = key_irq_edge(0) and key_irq_mask(0) = '0') then 
-                irq_source(0) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(1) /= registre_key_mem(1) and registre_key_mem(1) = key_irq_edge(1) and key_irq_mask(1) = '0') then 
-                irq_source(1) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(2) /= registre_key_mem(2) and registre_key_mem(2) = key_irq_edge(2) and key_irq_mask(2) = '0') then 
-                irq_source(2) <= '1';
-				irq_s <= '1';
-			elsif (key_val_save(3) /= registre_key_mem(3) and registre_key_mem(3) = key_irq_edge(3) and key_irq_mask(3) = '0') then 
-                irq_source(3) <= '1';
-				irq_s <= '1';
-            end if;
-			-- Met à jour l'ancienne valeur des keys
-			key_val_save <= registre_key_mem;
+
 		
 			-- Si une lecture est faite
             if (axi_arready_s = '1' and axi_rvalid_s = '0')  then 
@@ -418,48 +394,28 @@ begin
 		
 				-- En fonction de l'adresse qu'on souhaite lire
                 case int_raddr_v is
-                    -- Lecture de la constante 
-                    when 0   =>  
-                        axi_rdata_mem_s <= registre_cst_mem;
-                    -- Lecture du registre de test  
-                    when 1   =>
-                        axi_rdata_mem_s <= registre_test_mem;
-                    -- Lecture des leds
+					-- lecture de la constante
+					when 0   =>
+                        axi_rdata_mem_s <= x"deadbeef";
+					-- lecture du enable
                     when 64   =>
-                        axi_rdata_mem_s(9 downto 0) <= registre_led_mem;
-                     -- Lecture des keys
-                    when 128   =>
-                        axi_rdata_mem_s(3 downto 0) <= registre_key_mem;
-					-- lecture de la source d'interruption et acquitement
+                        axi_rdata_mem_s(0) <= enable_s;
+                     -- Lecture du busy
+                    when 65   =>
+                        axi_rdata_mem_s(0) <= busy_s;
+						
+						
+					-- lecture du footprint
+					when 128   =>
+                        axi_rdata_mem_s <= footprint_mem_s(31 downto 0);
 					when 129   =>
-                        axi_rdata_mem_s(3 downto 0) <= irq_source;
-						irq_s <= '0';
-						irq_source <= "0000";
-						
-					-- lecture des masque des irq
+                         axi_rdata_mem_s <= footprint_mem_s(63 downto 32);
 					when 130   =>
-                        axi_rdata_mem_s(3 downto 0) <= key_irq_mask; 
-					-- lecture des masque des irq
-					when 131   =>
-                        axi_rdata_mem_s(3 downto 0) <= key_irq_edge; 
-						
-                    -- Lecture des switches
-                    when 192   =>
-                        axi_rdata_mem_s(9 downto 0) <= registre_switch_mem;
+                         axi_rdata_mem_s <= footprint_mem_s(95 downto 64);
+                    when 131   =>
+                         axi_rdata_mem_s <= footprint_mem_s(127 downto 96);
                         
-                    -- Lecture d'un afficheur 7 seg (256 - 276)
-                    when 256   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex0_mem;
-                    when 260   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex1_mem;
-                    when 264   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex2_mem;
-                    when 268   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex3_mem;
-                    when 272   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex4_mem;
-                    when 276   =>
-                        axi_rdata_mem_s(6 downto 0) <= registre_hex5_mem;
+                   
                         
                         
                     when others => 
@@ -474,8 +430,6 @@ begin
         end if;
     end process;
 	
-	-- Mise à jour de la ligne l'interruption
-	irq_o <= irq_s;
 
     -- Mise à jour de la validité de lecture
     axi_rvalid_o <= axi_rvalid_s;
@@ -488,14 +442,6 @@ begin
     
     
     -- Mise à jour des sorties
-    leds_o(9 downto 0)     <=  registre_led_mem;   
-        
-    hex0_o(6 downto 0)     <=  registre_hex0_mem;   
-    hex1_o(6 downto 0)     <=  registre_hex1_mem;   
-    hex2_o(6 downto 0)     <=  registre_hex2_mem;   
-    hex3_o(6 downto 0)     <=  registre_hex3_mem;   
-    hex4_o(6 downto 0)     <=  registre_hex4_mem;   
-    hex5_o(6 downto 0)     <=  registre_hex5_mem;   
 
 
 end rtl;

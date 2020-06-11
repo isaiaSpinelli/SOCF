@@ -230,18 +230,7 @@ architecture top of DE1_SoC_top is
             memory_mem_dm                   : out   std_logic_vector(3 downto 0);                     -- mem_dm
             memory_oct_rzqin                : in    std_logic                     := 'X';             -- oct_rzqin
 				
-				conduit_export_switch_i      		: in    std_logic_vector(31 downto 0) := (others => 'X'); -- switch_i
-				conduit_export_key_i    			: in    std_logic_vector(31 downto 0) := (others => 'X'); -- key_i
-				
-				conduit_export_leds_o    			: out   std_logic_vector(31 downto 0);                    -- leds_o
-				
-				conduit_export_hex0_o    			: out   std_logic_vector(31 downto 0);                    -- hex0_o
-				conduit_export_hex1_o    			: out   std_logic_vector(31 downto 0);                    -- hex1_o
-				conduit_export_hex2_o    			: out   std_logic_vector(31 downto 0);                    -- hex2_o
-				conduit_export_hex3_o    			: out   std_logic_vector(31 downto 0);                    -- hex3_o
-				conduit_export_hex4_o    			: out   std_logic_vector(31 downto 0);                    -- hex4_o
-				conduit_export_hex5_o   			: out   std_logic_vector(31 downto 0);                    -- hex5_o
-    
+			
             -- Pushbutton
             hps_io_hps_io_gpio_inst_GPIO54  : inout std_logic                     := 'X';             -- hps_io_gpio_inst_GPIO54
     
@@ -286,19 +275,6 @@ begin
 			memory_mem_dm       => HPS_DDR3_DM_o,
 			memory_oct_rzqin    => HPS_DDR3_RZQ_i,
 
-			conduit_export_switch_i (9 downto 0)      			=> SW_i ,     -- switch_i
-			conduit_export_switch_i (31 downto 10)					=> (others => '0'),
-			conduit_export_key_i (3 downto 0)     					=> KEY_i,     -- key_i
-			conduit_export_key_i (31 downto 4)						=> (others => '0'),
-			
-			conduit_export_leds_o (9 downto 0)       				=> LEDR_o,     -- leds_o
-			
-			conduit_export_hex0_o (6 downto 0)      				=> HEX0_o,     -- hex0_o
-			conduit_export_hex1_o (6 downto 0)      				=> HEX1_o,     -- hex1_o
-			conduit_export_hex2_o (6 downto 0)      				=> HEX2_o,     -- hex2_o
-			conduit_export_hex3_o (6 downto 0)      				=> HEX3_o,     -- hex3_o
-			conduit_export_hex4_o (6 downto 0)      				=> HEX4_o,     -- hex4_o
-			conduit_export_hex5_o (6 downto 0)     				=> HEX5_o,     -- hex5_o
 
 
 			-- Pushbutton
