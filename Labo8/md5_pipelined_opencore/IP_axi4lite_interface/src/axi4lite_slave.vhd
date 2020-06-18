@@ -17,6 +17,7 @@
 library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
+	use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity axi4lite_slave is
     generic (
@@ -124,17 +125,29 @@ architecture rtl of axi4lite_slave is
 	
 	--------------- SIGNAUX CONTROLES  ---------------
 	signal busy_s    			: std_logic :='0';
-
+	-- Permet la gestion de la màj du footprint et de la valeur d'init
+	signal valid_2_s     		: std_logic;
+	signal valid_3_s     		: std_logic;
+	
 	--------------- SIGNAUX MD5 ------------------------
 	signal enable_s    			: std_logic :='0';
     signal valid_i_s     		: std_logic :='0';
 	signal wb_s        			: std_logic_vector(511 downto 0);
-	
 	signal init_val_s 			: std_logic_vector(127 downto 0):= x"67452301EFCDAB8998BADCFE10325476";
-	
 	signal valid_o_s     		: std_logic;
     signal footprint_s 			: std_logic_vector(127 downto 0) := (others => '0');
-	signal footprint_mem_s 		: std_logic_vector(127 downto 0) := (others => '0');
+	
+	-- Permet de mémorier le footprint lorsqu'il est valide
+	signal footprint_mem_s 		: std_logic_vector(127 downto 0) := x"67452301EFCDAB8998BADCFE10325476";
+	
+	
+	-- Stockage des résultats intermédiaires lors des additions du footprint avec la valeur d'init
+	signal add_footprint_init_0        			: std_logic_vector(31 downto 0);
+	signal add_footprint_init_1        			: std_logic_vector(31 downto 0);
+	signal add_footprint_init_2        			: std_logic_vector(31 downto 0);
+	signal add_footprint_init_3        			: std_logic_vector(31 downto 0);
+	
+
 	
 	
 	    
@@ -157,10 +170,6 @@ begin
 	 -- mise à jour des entrées
     reset_s  <= axi_reset_i;
 	
-	-- Constants mis à jour
-    --registre_switch_mem <= switch_i(9 downto 0);
-	
-
     
 -----------------------------------------------------------
 -- Write address channel
@@ -263,13 +272,28 @@ begin
 			enable_s	<= '0';
 			busy_s <= '0';
 			valid_i_s <= '0';
+			valid_2_s <= '0';
+			valid_3_s <= '0';
             
         elsif rising_edge(axi_clk_i) then
-			-- Si un footprint est arrivé, met à jour la valeur d'init
-			if valid_o_s = '1' then
-				footprint_mem_s <= footprint_s;
-				init_val_s <= footprint_s;
+			-- Dans le cas ou un footprint a été mis à jour (ligne 329)
+			if valid_3_s = '1' then
+				valid_2_s <= '0';
+				-- met à jour la valeur d'init avec l'addition des vecteurs
+				init_val_s <= footprint_mem_s;
+				-- indique que ce n'est plus busy
 				busy_s <= '0';
+			end if;
+			-- Si un footprint est arrivé, calcul le nouveau hash
+			if valid_o_s = '1' then
+				-- indique qu'un nouveau calcul de hash est prêt
+				valid_2_s <= '1';
+				-- calcul le noueau hash
+				add_footprint_init_0 <=  footprint_s(31 downto 0) + init_val_s(31 downto 0);
+				add_footprint_init_1 <=  footprint_s(63 downto 32) + init_val_s(63 downto 32);
+				add_footprint_init_2 <=  footprint_s(95 downto 64) + init_val_s(95 downto 64);
+				add_footprint_init_3 <=  footprint_s(127 downto 96) + init_val_s(127 downto 96);
+								
 			end if;
 			
 			-- s'assure que le signal valid_i reste actif un seul coup de clock
@@ -280,15 +304,18 @@ begin
 				-- convertie l'adresse d'écriture en integer
                 int_waddr_v   := to_integer(unsigned(axi_waddr_mem_s));
                 case int_waddr_v is
+					-- Met à jour les données d'un paquet
                     -- offset 0 - 15 : wb_s (511 - 0) 
                     when 0 to 14   =>  wb_s ( ((int_waddr_v*32+31)) downto (int_waddr_v*32) ) <= axi_wdata_mem_s;
                    
+					-- lors de l'écriture du dernier mot d'un paquet, indique qu'il est valid et busy
 				     when 15   =>  	wb_s ( 511 downto 480 ) <= axi_wdata_mem_s;
 									valid_i_s <= '1';
 									busy_s <= '1';
                         
                     -- offset 64 : Enable  
                     when 64   => 
+						-- lors de l'activation ou la désactivation du enable, màj les signaux busy et init_val
 						enable_s <= axi_wdata_mem_s(0);  
 						busy_s <= '0';
 						init_val_s  <= x"67452301EFCDAB8998BADCFE10325476";
@@ -298,8 +325,24 @@ begin
                     when others => null;
                 end case;
             end if;
+		-- Lors d'un flanc descendant
+		elsif falling_edge(axi_clk_i) then
+			-- si un nouveau hash a été calculé
+			if valid_2_s = '1' then
+				-- indique que le footprint a été mis à jour
+				valid_3_s <= '1';
+				-- met à jour le footprint
+				footprint_mem_s <=  add_footprint_init_3 & add_footprint_init_2 & add_footprint_init_1 & add_footprint_init_0;
+				
+			-- s'assure que le signal valid_3_s reste actif un seul coup de clock
+			else
+				valid_3_s <= '0';
+								
+			end if;
         end if;
     end process;
+	
+	
                     
 
 -----------------------------------------------------------
